@@ -1,0 +1,119 @@
+package com.uyarberk.kutuphane_randevu.service;
+
+// Gerekli model ve repository sınıfı içe aktarılır
+import com.uyarberk.kutuphane_randevu.model.Appointment;
+import com.uyarberk.kutuphane_randevu.repository.AppointmentRepository;
+
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service // Bu sınıf bir servis bileşenidir, Spring tarafından yönetilir
+public class AppointmentService {
+
+    // Appointment işlemleri için repository'e ihtiyacımız var
+    private final AppointmentRepository appointmentRepository;
+
+    // Constructor üzerinden repository enjekte edilir
+    public AppointmentService(AppointmentRepository appointmentRepository) {
+        this.appointmentRepository = appointmentRepository;
+    }
+
+    /**
+     * Tüm randevuları getirir
+     * @return List<Appointment>
+     */
+    public List<Appointment> getAllAppointments() {
+        // Repository'den tüm kayıtları alır
+        return appointmentRepository.findAll();
+    }
+
+    /**
+     * Belirli ID'ye göre randevuyu getirir
+     * @param id Randevunun ID'si
+     * @return Optional<Appointment> – olabilir de olmayabilir de
+     */
+    public Optional<Appointment> getAppointmentById(Long id) {
+        // ID ile randevuyu bulur (bulamazsa boş döner)
+        return appointmentRepository.findById(id);
+    }
+
+    /**
+     * Yeni bir randevu oluşturur
+     * @param appointment Oluşturulacak randevu nesnesi
+     * @return Kaydedilen randevu
+     */
+    public Appointment createAppointment(Appointment appointment) {
+        // 1. Aynı odada, aynı tarih ve çakışan saatlerde randevu var mı kontrol et
+        List<Appointment> existingAppointments = appointmentRepository
+                .findByRoomAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
+                        appointment.getRoom(),
+                        appointment.getDate(),
+                        appointment.getEndTime(),
+                        appointment.getStartTime()
+                );
+
+        // 2. Eğer çakışma varsa randevu oluşturulmasın
+        if (!existingAppointments.isEmpty()) {
+            throw new RuntimeException("Bu odada bu saat aralığında zaten bir randevu var.");
+        }
+
+        // 3. Çakışma yoksa randevuyu kaydet
+        return appointmentRepository.save(appointment);
+    }
+
+
+    /**
+     * Mevcut bir randevuyu günceller
+     * @param id Güncellenecek randevunun ID'si
+     * @param updatedAppointment Yeni verilerle dolu randevu nesnesi
+     * @return Güncellenmiş randevu nesnesi ya da null
+     */
+    public Appointment updateAppointment(Long id, Appointment updatedAppointment) {
+        // Önce ID ile var olan randevuyu bul
+        Optional<Appointment> existing = appointmentRepository.findById(id);
+
+        // Randevu varsa güncelle
+        if (existing.isPresent()) {
+            Appointment a = existing.get();
+
+            // Yeni değerleri set et
+            a.setDate(updatedAppointment.getDate());
+            a.setStartTime(updatedAppointment.getStartTime());
+            a.setEndTime(updatedAppointment.getEndTime());
+            a.setRoom(updatedAppointment.getRoom());
+            a.setUser(updatedAppointment.getUser());
+            a.setStatus(updatedAppointment.getStatus());
+
+            // Güncellenmiş randevuyu kaydet
+            return appointmentRepository.save(a);
+        } else {
+            // Güncellenecek randevu bulunamadıysa null döner
+            return null;
+        }
+    }
+
+    /**
+     * Belirli ID'ye sahip randevuyu siler
+     * @param id Silinecek randevunun ID'si
+     * @return true = silindi, false = bulunamadı
+     */
+    public boolean deleteAppointment(Long id) {
+        // Önce var mı diye kontrol et
+        Optional<Appointment> a = appointmentRepository.findById(id);
+
+        if (a.isPresent()) {
+            // Varsa sil
+            appointmentRepository.deleteById(id);
+            return true;
+        }
+
+        // Yoksa false döner
+        return false;
+    }
+    public List<Appointment> getAppointmentsByUserId(Long userId) {
+        return appointmentRepository.findByUserId(userId);
+    }
+
+}
