@@ -22,9 +22,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByUserId(Long userId);
 
 
-
-// com.uyarberk.kutuphane_randevu.repository.AppointmentRepository
-
     /**
      * Belirli bir tarihte, belirli saat aralığında ve isteğe bağlı olarak belirli bir odadaki randevuları getirir.
      * Eğer room parametresi null ise tüm odalardaki randevular getirilir.
@@ -46,4 +43,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("endTime") LocalTime endTime,             // Bitiş saati
             @Param("room") Room room                         // Oda nesnesi (nullable)
     );
+
 }

@@ -1,10 +1,12 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
 import com.uyarberk.kutuphane_randevu.model.Appointment;
+import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.AppointmentService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -25,7 +27,6 @@ public class AppointmentController {
 
     // Tüm randevuları getir (GET /api/appointments)
     @PreAuthorize("hasRole('ADMIN')")
-
     @GetMapping
     public ResponseEntity<List<Appointment>> getAllAppointments() {
         List<Appointment> appointments = appointmentService.getAllAppointments();
@@ -43,6 +44,24 @@ public class AppointmentController {
         } else {
             return ResponseEntity.notFound().build(); // HTTP 404
         }
+    }
+    // Bu endpoint'e sadece 'USER' veya 'ADMIN' rolüne sahip kullanıcılar erişebilir
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+// HTTP GET isteği ile /api/appointments/my endpoint'ine istek atıldığında bu metod çalışır
+    @GetMapping("/my")
+    public ResponseEntity<List<Appointment>> getMyAppointments(Authentication authentication) {
+
+        // authentication nesnesi Spring Security tarafından otomatik sağlanır.
+        // JWT token doğrulandıysa, içindeki kullanıcı bilgileri buradan alınabilir.
+        // authentication.getPrincipal() → token'dan gelen kullanıcı nesnesidir.
+        // Bu nesne doğrudan bizim User entity'si olarak ayarlanmış durumda.
+        User user = (User) authentication.getPrincipal();
+
+        // Kullanıcının ID'sine göre kendi randevularını getir
+        List<Appointment> appointments = appointmentService.getAppointmentsByUserId(user.getId());
+
+        // Randevuları 200 OK HTTP cevabıyla birlikte JSON olarak geri döndür
+        return ResponseEntity.ok(appointments);
     }
 
     // Yeni randevu oluştur (POST /api/appointments)

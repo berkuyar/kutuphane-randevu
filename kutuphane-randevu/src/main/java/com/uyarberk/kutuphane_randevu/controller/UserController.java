@@ -3,6 +3,7 @@ package com.uyarberk.kutuphane_randevu.controller;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -39,13 +40,14 @@ public class UserController {
             return ResponseEntity.status(401).build(); // Giriş hatalıysa 401 döner
         }
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-
     public ResponseEntity<?> getAllUsers(){
+
         return ResponseEntity.ok(userService.getAllUsers());
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-
     public ResponseEntity<User> getUserById(@PathVariable Long id){
        Optional<User> user = userService.getUserById(id);
 
@@ -55,6 +57,7 @@ public class UserController {
            return ResponseEntity.notFound().build();
        }
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id){
         boolean deleted = userService.deleteUserById(id);
@@ -65,6 +68,7 @@ public class UserController {
             return ResponseEntity.status(404).body("Kullanıcı bulunamadı.");
         }
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/id")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser){
 
