@@ -3,6 +3,7 @@ package com.uyarberk.kutuphane_randevu.controller;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.service.RoomService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,6 +45,7 @@ public class RoomController {
     }
 
     // Yeni oda oluştur (POST /api/rooms)
+    @PreAuthorize("hasRole ('ADMIN')")
     @PostMapping
     public ResponseEntity<Room> createRoom(@RequestBody Room room) {
         // Gelen Room objesini veritabanına kaydeder
@@ -54,6 +56,7 @@ public class RoomController {
     }
 
     // Odayı güncelle (PUT /api/rooms/{id})
+    @PreAuthorize("hasRole ('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room updatedRoom) {
         // Servis üzerinden güncelleme yapılır
@@ -69,6 +72,7 @@ public class RoomController {
     }
 
     // Odayı sil (DELETE /api/rooms/{id})
+    @PreAuthorize("hasRole ('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRoom(@PathVariable Long id) {
         // Servis üzerinden silme işlemi yapılır

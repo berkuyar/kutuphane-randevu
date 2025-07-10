@@ -2,9 +2,13 @@ package com.uyarberk.kutuphane_randevu.controller;
 
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.service.AppointmentService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,6 +24,8 @@ public class AppointmentController {
     }
 
     // Tüm randevuları getir (GET /api/appointments)
+    @PreAuthorize("hasRole('ADMIN')")
+
     @GetMapping
     public ResponseEntity<List<Appointment>> getAllAppointments() {
         List<Appointment> appointments = appointmentService.getAllAppointments();
@@ -27,6 +33,7 @@ public class AppointmentController {
     }
 
     // Belirli ID'ye göre randevu getir (GET /api/appointments/{id})
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
         Optional<Appointment> appointment = appointmentService.getAppointmentById(id);
@@ -51,6 +58,7 @@ public class AppointmentController {
 
 
     // Var olan randevuyu güncelle (PUT /api/appointments/{id})
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @RequestBody Appointment updatedAppointment) {
         Appointment updated = appointmentService.updateAppointment(id, updatedAppointment);
@@ -63,6 +71,7 @@ public class AppointmentController {
     }
 
     // Randevuyu sil (DELETE /api/appointments/{id})
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
        boolean deleted = appointmentService.deleteAppointment(id);
@@ -73,9 +82,23 @@ public class AppointmentController {
 
        }
     }
-    @GetMapping("/user{userId}")
-    public ResponseEntity<List<Appointment>> getAppointmentsByUserId(@PathVariable Long userId){
-        List<Appointment> appointments = appointmentService.getAppointmentsByUserId(userId);
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Appointment>> getAppointmentsByUserId(@PathVariable("userId") Long userId){
+    List<Appointment> appointments = appointmentService.getAppointmentsByUserId(userId);
         return ResponseEntity.ok(appointments);
     }
+@PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/filter")
+    public ResponseEntity<List<Appointment>> filterAppointments(
+        @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+        @RequestParam("startTime") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime startTime,
+        @RequestParam("endTime") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime,
+        @RequestParam(value = "roomId", required = false) Long roomId
+){
+       List<Appointment> result = appointmentService.filterAppointments(date, startTime, endTime, roomId);
+       return ResponseEntity.ok(result);
+}
+
+
 }
