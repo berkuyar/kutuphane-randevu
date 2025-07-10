@@ -2,10 +2,14 @@ package com.uyarberk.kutuphane_randevu.service;
 
 // Gerekli model ve repository sınıfı içe aktarılır
 import com.uyarberk.kutuphane_randevu.model.Appointment;
+import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.repository.AppointmentRepository;
 
+import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,10 +18,12 @@ public class AppointmentService {
 
     // Appointment işlemleri için repository'e ihtiyacımız var
     private final AppointmentRepository appointmentRepository;
+    private final RoomRepository roomRepository;
 
     // Constructor üzerinden repository enjekte edilir
-    public AppointmentService(AppointmentRepository appointmentRepository) {
+    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository) {
         this.appointmentRepository = appointmentRepository;
+        this.roomRepository = roomRepository;
     }
 
     /**
@@ -52,7 +58,11 @@ public class AppointmentService {
                         appointment.getDate(),
                         appointment.getEndTime(),
                         appointment.getStartTime()
-                );
+                )
+                .stream()
+                .filter(a -> a.getStatus() == Appointment.Status.ACTIVE)
+                .toList();
+
 
         // 2. Eğer çakışma varsa randevu oluşturulmasın
         if (!existingAppointments.isEmpty()) {
@@ -112,8 +122,23 @@ public class AppointmentService {
         // Yoksa false döner
         return false;
     }
+
+
     public List<Appointment> getAppointmentsByUserId(Long userId) {
+
         return appointmentRepository.findByUserId(userId);
+    }
+
+    public List<Appointment> filterAppointments(LocalDate date, LocalTime startTime, LocalTime endTime, Long roomId){
+
+        Room room = null;
+
+        if(roomId != null){
+
+            room = roomRepository.findById(roomId).orElse(null);
+
+        }
+        return appointmentRepository.findAppointmentsByDateAndTimeRange(date, startTime, endTime, room);
     }
 
 }

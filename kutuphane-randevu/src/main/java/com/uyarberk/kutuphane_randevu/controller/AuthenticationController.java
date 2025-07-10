@@ -29,7 +29,7 @@ public class AuthenticationController {
     }
 
     // giriş endpointi
-    @PostMapping("login")
+    @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login (@RequestBody AuthenticationRequest request){
         AuthenticationResponse response = authenticationService.login(request);
 
