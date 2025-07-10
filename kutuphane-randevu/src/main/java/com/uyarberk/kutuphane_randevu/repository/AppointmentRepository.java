@@ -22,6 +22,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByUserId(Long userId);
 
 
+
 // com.uyarberk.kutuphane_randevu.repository.AppointmentRepository
 
     /**
