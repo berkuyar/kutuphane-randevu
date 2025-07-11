@@ -1,9 +1,11 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
+import com.uyarberk.kutuphane_randevu.dto.ChangePasswordRequest;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -80,6 +82,19 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+        User user = (User) authentication.getPrincipal(); // JWT token'dan gelen kullanıcı
+        try {
+            userService.changePassword(user.getId(), request);
+            return ResponseEntity.ok("Şifre başarıyla güncellendi.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
 
 }

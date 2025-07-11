@@ -1,11 +1,13 @@
 package com.uyarberk.kutuphane_randevu.service;
 
 // Kullanıcı modelini ve repository'yi içeri aktarıyoruz
+import com.uyarberk.kutuphane_randevu.dto.ChangePasswordRequest;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.repository.UserRepository;
 
 // Spring'in servis anotasyonu ve bağımlılık enjeksiyonu için gerekli sınıflar
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,8 @@ public class UserService {
 
     @Autowired // Spring, bu interface'i otomatik olarak bağlar (dependency injection)
     private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /**
      * Kullanıcı kayıt işlemi
@@ -101,5 +105,22 @@ public class UserService {
         return Optional.empty(); // kullanıcı bulunamazsa
     }
 
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
 
-}
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new RuntimeException("Eski şifre yanlış");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new RuntimeException("Yeni şifreler eşleşmiyor");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+    }
+
+
+

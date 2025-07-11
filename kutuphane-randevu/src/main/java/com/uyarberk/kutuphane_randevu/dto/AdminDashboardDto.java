@@ -13,7 +13,6 @@ public class AdminDashboardDto {
         this.mostPopularHour = mostPopularHour;
     }
      public AdminDashboardDto(){
-
       }
     private long todayAppointments;
     private long availableRooms;
