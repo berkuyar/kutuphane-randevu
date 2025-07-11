@@ -50,7 +50,6 @@ public class AppointmentController {
 // HTTP GET isteği ile /api/appointments/my endpoint'ine istek atıldığında bu metod çalışır
     @GetMapping("/my")
     public ResponseEntity<List<Appointment>> getMyAppointments(Authentication authentication) {
-
         // authentication nesnesi Spring Security tarafından otomatik sağlanır.
         // JWT token doğrulandıysa, içindeki kullanıcı bilgileri buradan alınabilir.
         // authentication.getPrincipal() → token'dan gelen kullanıcı nesnesidir.

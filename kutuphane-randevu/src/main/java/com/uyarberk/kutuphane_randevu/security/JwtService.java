@@ -23,7 +23,6 @@ public class JwtService {
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole().name()); // İstersen role, id gibi şeyler de ekleyebilirsin
-
         return Jwts.builder()
                 .setClaims(claims) // Payload'a ek veri
                 .setSubject(user.getEmail()) // Kimlik bilgisi (email gibi)

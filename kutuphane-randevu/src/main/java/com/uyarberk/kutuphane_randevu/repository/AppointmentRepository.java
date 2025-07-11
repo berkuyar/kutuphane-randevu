@@ -43,5 +43,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("endTime") LocalTime endTime,             // Bitiş saati
             @Param("room") Room room                         // Oda nesnesi (nullable)
     );
+    // Belirli bir tarihe ait tüm randevuları getirir
+    List<Appointment> findByDate(LocalDate date);
 
+    // Belirli bir tarihte kaç randevu olduğunu sayar
+    long countByDate(LocalDate date);
 }
