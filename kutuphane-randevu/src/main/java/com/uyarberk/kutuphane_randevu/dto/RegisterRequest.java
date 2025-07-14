@@ -1,11 +1,17 @@
 package com.uyarberk.kutuphane_randevu.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class RegisterRequest {
 
-    public String email;
-    public String password;
-
-
+    @NotBlank(message = "Email boş olamaz.")
+    @Email(message = "Geçerli bir email adresi girin.")
+    private String email;
+    @NotBlank(message = "Şifre boş olamaz.")
+    @Size(min = 6, message = "Şifre en az 6 karakter olmalı.")
+    private String password;
     public void setEmail(String email) {
         this.email = email;
     }

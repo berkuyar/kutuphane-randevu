@@ -34,7 +34,6 @@ public class User  implements UserDetails {
     // === Constructor'lar ===
 
     public User() {
-        // Boş constructor (Spring buna ihtiyaç duyar)
     }
 
     public User(Long id, String name, String email, String password, Role role) {

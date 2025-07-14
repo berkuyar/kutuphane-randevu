@@ -59,11 +59,10 @@ public class AuthenticationService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(User.Role.USER);
-
         userRepository.save(user);
 
         String jwt = jwtService.generateToken(user);
-        return new AuthenticationResponse(jwt);
+         return new AuthenticationResponse(jwt);
     }
 
 }

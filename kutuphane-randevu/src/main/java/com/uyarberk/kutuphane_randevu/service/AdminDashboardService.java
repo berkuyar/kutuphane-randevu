@@ -33,7 +33,6 @@ public class AdminDashboardService {
         dto.setTodayAppointments(appointmentRepository.countByDate(LocalDate.now()));
         dto.setAvailableRooms(getAvailableRoomCount());
         dto.setMostPopularHour(getMostPopularHour());
-
         return dto;
     }
     private long getAvailableRoomCount(){

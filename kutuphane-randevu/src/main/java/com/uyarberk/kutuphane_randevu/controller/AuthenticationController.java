@@ -4,6 +4,7 @@ import com.uyarberk.kutuphane_randevu.dto.AuthenticationRequest;
 import com.uyarberk.kutuphane_randevu.dto.AuthenticationResponse;
 import com.uyarberk.kutuphane_randevu.dto.RegisterRequest;
 import com.uyarberk.kutuphane_randevu.service.AuthenticationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ public class AuthenticationController {
     }
     // kayıt endpointi
     @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request){
+    public ResponseEntity<AuthenticationResponse> register(@RequestBody @Valid RegisterRequest request){
         AuthenticationResponse response = authenticationService.register(request);
 
         return ResponseEntity.ok(response);

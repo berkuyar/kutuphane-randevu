@@ -1,6 +1,8 @@
 package com.uyarberk.kutuphane_randevu.service;
 
 // Gerekli model ve repository sınıfı içe aktarılır
+import com.uyarberk.kutuphane_randevu.dto.AppointmentResponseDto;
+import com.uyarberk.kutuphane_randevu.exception.AppointmentNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.repository.AppointmentRepository;
@@ -40,9 +42,14 @@ public class AppointmentService {
      * @param id Randevunun ID'si
      * @return Optional<Appointment> – olabilir de olmayabilir de
      */
-    public Optional<Appointment> getAppointmentById(Long id) {
-        // ID ile randevuyu bulur (bulamazsa boş döner)
-        return appointmentRepository.findById(id);
+    public AppointmentResponseDto getAppointmentById(Long id) {
+        Appointment a = appointmentRepository.findById(id).orElseThrow(() -> new AppointmentNotFoundException("Randevu yok"));
+        AppointmentResponseDto app = new AppointmentResponseDto();
+        app.setId(a.getId());
+        app.setUserId(a.getUser().getId());
+        app.setUserMail(a.getUser().getEmail());
+
+        return app;
     }
 
     /**
@@ -117,6 +124,7 @@ public class AppointmentService {
             // Varsa sil
             appointmentRepository.deleteById(id);
             return true;
+
         }
 
         // Yoksa false döner
@@ -127,6 +135,7 @@ public class AppointmentService {
     public List<Appointment> getAppointmentsByUserId(Long userId) {
 
         return appointmentRepository.findByUserId(userId);
+
     }
 
     public List<Appointment> filterAppointments(LocalDate date, LocalTime startTime, LocalTime endTime, Long roomId){

@@ -32,7 +32,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
      * @param room      Oda (isteğe bağlı). Null verilirse tüm odalar aranır.
      * @return          Filtreye uyan randevu listesi
      */
-    @Query("SELECT a FROM Appointment a " +
+    @Query(value = "SELECT a FROM Appointment a " +
             "WHERE a.date = :date " +                          // Tarihi eşleştir
             "AND a.startTime >= :startTime " +                // Başlangıç saatinden sonra olanları al
             "AND a.endTime <= :endTime " +                    // Bitiş saatinden önce olanları al

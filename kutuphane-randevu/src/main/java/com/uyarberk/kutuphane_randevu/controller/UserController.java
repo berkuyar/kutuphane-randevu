@@ -19,29 +19,6 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
-
-    // Kullanıcı kayıt işlemi (POST /api/users/register)
-    @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        try {
-            User savedUser = userService.register(user); // Kullanıcıyı kaydet
-            return ResponseEntity.ok(savedUser); // Başarılıysa 200 OK + kullanıcı
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build(); // Hata varsa 400 Bad Request
-        }
-    }
-
-    // Kullanıcı giriş işlemi (POST /api/users/login)
-    @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody User user) {
-        Optional<User> result = userService.login(user.getEmail(), user.getPassword());
-
-        if (result.isPresent()) {
-            return ResponseEntity.ok(result.get()); // Giriş başarılıysa kullanıcıyı döner
-        } else {
-            return ResponseEntity.status(401).build(); // Giriş hatalıysa 401 döner
-        }
-    }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<?> getAllUsers(){
@@ -63,7 +40,6 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id){
         boolean deleted = userService.deleteUserById(id);
-
         if(deleted){
             return ResponseEntity.ok("Kullanıcı başarıyla silindi.");
         }else{

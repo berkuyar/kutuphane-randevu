@@ -1,8 +1,20 @@
 package com.uyarberk.kutuphane_randevu.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+
 public class ChangePasswordRequest {
+
+    @NotBlank(message = "Mevcut şifre boş olamaz.")
+    @NotEmpty(message = "Mevcut şifre boş olamaz.")
     private String oldPassword;
+    @NotBlank(message = "Yeni şifre boş olamaz.")
+    @NotEmpty(message = "Yeni şifre boş olamaz.")
+    @Size(min = 4, message = "Yeni şifre en az 4 haneli olmalıdır.")
     private String newPassword;
+    @NotBlank(message = "Yeni şifre boş olamaz.")
+    @NotEmpty(message = "Yeni boş olamaz.")
     private String confirmNewPassword;
 
     public ChangePasswordRequest(String oldPassword, String newPassword, String confirmPassword) {

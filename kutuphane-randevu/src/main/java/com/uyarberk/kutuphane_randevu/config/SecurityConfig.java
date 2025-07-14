@@ -14,7 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity
+@EnableMethodSecurity   //metot seviyesinde yetkilendirme yapılmasını sağlar. örnepin @PreAuthorize("hasRole('ADMIN')")
 
 public class SecurityConfig {
 
@@ -50,6 +50,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 }

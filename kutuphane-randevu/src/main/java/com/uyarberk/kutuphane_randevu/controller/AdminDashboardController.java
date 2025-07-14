@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminDashboardController {
 
     private final AdminDashboardService adminDashboardService;
-
     public AdminDashboardController(AdminDashboardService adminDashboardService) {
         this.adminDashboardService = adminDashboardService;
     }

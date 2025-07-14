@@ -2,6 +2,7 @@ package com.uyarberk.kutuphane_randevu.controller;
 
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.service.RoomService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,16 +33,9 @@ public class RoomController {
     // ID ile tek bir oda getir (GET /api/rooms/{id})
     @GetMapping("/{id}")
     public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
-        // Servis üzerinden odayı arıyoruz
-        Optional<Room> room = roomService.getRoomById(id);
+        Room room = roomService.getRoomById(id);
+        return ResponseEntity.ok(room);
 
-        // Oda varsa HTTP 200 döner
-        if (room.isPresent()) {
-            return ResponseEntity.ok(room.get());
-        }
-
-        // Oda yoksa HTTP 404 Not Found döner
-        return ResponseEntity.notFound().build();
     }
 
     // Yeni oda oluştur (POST /api/rooms)
@@ -61,12 +55,10 @@ public class RoomController {
     public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room updatedRoom) {
         // Servis üzerinden güncelleme yapılır
         Room updated = roomService.updateRoom(id, updatedRoom);
-
         // Güncelleme başarılıysa HTTP 200 döner
         if (updated != null) {
             return ResponseEntity.ok(updated);
         }
-
         // Oda bulunamazsa HTTP 404 döner
         return ResponseEntity.notFound().build();
     }

@@ -1,5 +1,7 @@
 package com.uyarberk.kutuphane_randevu.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.uyarberk.kutuphane_randevu.dto.RegisterRequest;
 import jakarta.persistence.*;
 
 @Entity
@@ -18,10 +20,13 @@ public class Room {
 
     @ManyToOne
     @JoinColumn(name = "created_by")
+    @JsonBackReference
     private User createdBy;
 
     // ─── GETTER ───────────────────────────────────────────────────────────────
 
+    // bu alanlar kullanıcıya gösterilmez.
+    @JsonBackReference
     public Long getId() {
         return id;
     }

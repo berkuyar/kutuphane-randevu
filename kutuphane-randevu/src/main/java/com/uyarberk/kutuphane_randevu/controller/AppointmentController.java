@@ -1,5 +1,6 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
+import com.uyarberk.kutuphane_randevu.dto.AppointmentResponseDto;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.AppointmentService;
@@ -36,14 +37,11 @@ public class AppointmentController {
     // Belirli ID'ye göre randevu getir (GET /api/appointments/{id})
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<Appointment> getAppointmentById(@PathVariable Long id) {
-        Optional<Appointment> appointment = appointmentService.getAppointmentById(id);
+    public ResponseEntity<AppointmentResponseDto> getAppointmentById(@PathVariable Long id) {
+        AppointmentResponseDto appointment = appointmentService.getAppointmentById(id);
 
-        if (appointment.isPresent()) {
-            return ResponseEntity.ok(appointment.get()); // HTTP 200 + randevu
-        } else {
-            return ResponseEntity.notFound().build(); // HTTP 404
-        }
+        return ResponseEntity.ok(appointment);
+
     }
     // Bu endpoint'e sadece 'USER' veya 'ADMIN' rolüne sahip kullanıcılar erişebilir
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -58,6 +56,7 @@ public class AppointmentController {
 
         // Kullanıcının ID'sine göre kendi randevularını getir
         List<Appointment> appointments = appointmentService.getAppointmentsByUserId(user.getId());
+
 
         // Randevuları 200 OK HTTP cevabıyla birlikte JSON olarak geri döndür
         return ResponseEntity.ok(appointments);

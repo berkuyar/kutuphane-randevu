@@ -1,8 +1,17 @@
 package com.uyarberk.kutuphane_randevu.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class AuthenticationRequest {
-    public String email;
-    public String password;
+    @NotBlank(message = "Email boş olamaz!")
+    @Email(message = "Lütfen geçerli bir email giriniz.")
+    private String email;
+    @NotBlank(message = "Lütfen bir şifre giriniz.")
+    @Size(min = 4, message = "Şifreniz en az 4 haneli olmalıdır.")
+    private String password;
 
     public void setEmail(String email) {
         this.email = email;

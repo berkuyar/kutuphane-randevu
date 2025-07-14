@@ -1,5 +1,6 @@
 package com.uyarberk.kutuphane_randevu.service;
 
+import com.uyarberk.kutuphane_randevu.exception.RoomNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
 import org.springframework.stereotype.Service;
@@ -41,8 +42,9 @@ public class RoomService {
      * @param id Odanın veritabanı ID'si
      * @return Eğer varsa Room nesnesi, yoksa boş Optional
      */
-    public Optional<Room> getRoomById(Long id) {
-        return roomRepository.findById(id);
+    public Room getRoomById(Long id) {
+
+        return roomRepository.findById(id).orElseThrow(()-> new RoomNotFoundException("Oda bulunamadı!"));
     }
 
     /**
