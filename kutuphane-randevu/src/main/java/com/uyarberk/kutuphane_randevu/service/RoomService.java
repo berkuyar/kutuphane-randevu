@@ -6,7 +6,6 @@ import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * RoomService sınıfı, odalarla ilgili iş mantığını içerir.
@@ -65,18 +64,13 @@ public class RoomService {
      * @return Güncellenmiş Room nesnesi, bulunamazsa null
      */
     public Room updateRoom(Long id, Room updatedRoom) {
-        Optional<Room> optionalRoom = roomRepository.findById(id);
-        if (optionalRoom.isPresent()) {
-            Room room = optionalRoom.get();
-            room.setName(updatedRoom.getName());
-            room.setDescription(updatedRoom.getDescription());
-            room.setCapacity(updatedRoom.getCapacity());
-            room.setCreatedBy(updatedRoom.getCreatedBy());
-            return roomRepository.save(room);
-        } else {
-            // Oda bulunamazsa null döndürülür (alternatif: exception fırlatılabilir)
-            return null;
-        }
+    Room room = roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException("Güncellenecek Oda Bulunamadı"));
+    room.setName(updatedRoom.getName());
+    room.setDescription(updatedRoom.getDescription());
+    room.setCapacity(updatedRoom.getCapacity());
+    room.setCreatedBy(updatedRoom.getCreatedBy());
+
+    return roomRepository.save(room);
     }
 
     /**
@@ -85,6 +79,12 @@ public class RoomService {
      * @param id Silinecek odanın ID'si
      */
     public void deleteRoom(Long id) {
+
+        if (!roomRepository.existsById(id)) {
+            throw new RoomNotFoundException("Silinmek istenen oda bulunamadı");
+        }
+
         roomRepository.deleteById(id);
     }
+
 }

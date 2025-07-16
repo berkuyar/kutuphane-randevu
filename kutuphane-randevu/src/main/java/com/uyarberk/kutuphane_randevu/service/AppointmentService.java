@@ -124,7 +124,6 @@ public class AppointmentService {
             // Varsa sil
             appointmentRepository.deleteById(id);
             return true;
-
         }
 
         // Yoksa false döner

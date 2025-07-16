@@ -28,13 +28,9 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id){
-       Optional<User> user = userService.getUserById(id);
+      User user = userService.getUserById(id);
+      return ResponseEntity.ok(user);
 
-       if(user.isPresent()){
-           return ResponseEntity.ok(user.get());
-       }else {
-           return ResponseEntity.notFound().build();
-       }
     }
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")

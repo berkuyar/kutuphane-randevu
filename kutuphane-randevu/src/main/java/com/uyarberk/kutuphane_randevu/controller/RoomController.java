@@ -2,10 +2,13 @@ package com.uyarberk.kutuphane_randevu.controller;
 
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.service.RoomService;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -55,22 +58,14 @@ public class RoomController {
     public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room updatedRoom) {
         // Servis üzerinden güncelleme yapılır
         Room updated = roomService.updateRoom(id, updatedRoom);
-        // Güncelleme başarılıysa HTTP 200 döner
-        if (updated != null) {
             return ResponseEntity.ok(updated);
-        }
-        // Oda bulunamazsa HTTP 404 döner
-        return ResponseEntity.notFound().build();
     }
 
     // Odayı sil (DELETE /api/rooms/{id})
     @PreAuthorize("hasRole ('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRoom(@PathVariable Long id) {
-        // Servis üzerinden silme işlemi yapılır
-        roomService.deleteRoom(id);
-
-        // Başarılıysa HTTP 200 ve mesaj döner
         return ResponseEntity.ok("Oda silindi");
     }
-}
+    }
+

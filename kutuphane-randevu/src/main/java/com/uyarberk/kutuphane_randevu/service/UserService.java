@@ -2,6 +2,7 @@ package com.uyarberk.kutuphane_randevu.service;
 
 // Kullanıcı modelini ve repository'yi içeri aktarıyoruz
 import com.uyarberk.kutuphane_randevu.dto.ChangePasswordRequest;
+import com.uyarberk.kutuphane_randevu.exception.UserNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.repository.UserRepository;
 
@@ -73,8 +74,8 @@ public class UserService {
     /**
      * ID’ye göre kullanıcıyı getirir
      */
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(()-> new UserNotFoundException("Kullanıcı bulunamadı"));
     }
     // UserService.java
     public boolean deleteUserById(Long id) {
@@ -105,7 +106,7 @@ public class UserService {
         return Optional.empty(); // kullanıcı bulunamazsa
     }
 
-    public void changePassword(Long userId, ChangePasswordRequest request) {
+    public void  changePassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
 
