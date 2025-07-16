@@ -39,5 +39,9 @@ public class GlobalExceptionHandling {
         return ResponseEntity.badRequest().body(errors);
     }
 
-
+    // aynı odadan varsa
+    @ExceptionHandler(DuplicateRoomException.class)
+    public ResponseEntity<Object> handleDuplicateRoomException(DuplicateRoomException ex){
+        return ResponseEntity.status(409).body(ex.getMessage());
+    }
 }

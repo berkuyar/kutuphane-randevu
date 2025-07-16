@@ -45,7 +45,7 @@ public class RoomController {
     @PreAuthorize("hasRole ('ADMIN')")
     @PostMapping
     public ResponseEntity<Room> createRoom(@RequestBody Room room) {
-        // Gelen Room objesini veritabanına kaydeder
+
         Room createdRoom = roomService.createRoom(room);
 
         // Kaydedilen yeni odayı HTTP 200 ile döner

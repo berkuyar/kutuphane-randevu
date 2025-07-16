@@ -1,5 +1,6 @@
 package com.uyarberk.kutuphane_randevu.service;
 
+import com.uyarberk.kutuphane_randevu.exception.DuplicateRoomException;
 import com.uyarberk.kutuphane_randevu.exception.RoomNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
@@ -53,6 +54,10 @@ public class RoomService {
      * @return Kaydedilen Room
      */
     public Room createRoom(Room room) {
+        boolean odaVarmi = roomRepository.existsByName(room.getName());
+        if(odaVarmi){
+            throw new DuplicateRoomException("Bu isimde bir oda zaten var: " + room.getName());
+        }
         return roomRepository.save(room);
     }
 
