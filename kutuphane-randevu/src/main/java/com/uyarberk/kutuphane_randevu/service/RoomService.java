@@ -1,11 +1,16 @@
 package com.uyarberk.kutuphane_randevu.service;
 
+import com.uyarberk.kutuphane_randevu.dto.RoomCreateRequestDto;
+import com.uyarberk.kutuphane_randevu.dto.RoomDto;
+import com.uyarberk.kutuphane_randevu.dto.RoomResponseDto;
+import com.uyarberk.kutuphane_randevu.dto.RoomUpdateRequestDto;
 import com.uyarberk.kutuphane_randevu.exception.DuplicateRoomException;
 import com.uyarberk.kutuphane_randevu.exception.RoomNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,9 +37,22 @@ public class RoomService {
      *
      * @return Tüm oda kayıtlarının listesi
      */
-    public List<Room> getAllRooms() {
-        return roomRepository.findAll();
+    public List<RoomResponseDto> getAllRooms() {
+        List<Room> rooms = roomRepository.findAll();
+
+        List<RoomResponseDto> dtoList = new ArrayList<>();
+        for (Room room : rooms){
+            RoomResponseDto dto = new RoomResponseDto();
+            dto.setId(room.getId());
+            dto.setName(room.getName());
+            dto.setDescription(room.getDescription());
+            dto.setCapacity(room.getCapacity());
+            dtoList.add(dto);
+        }
+
+        return dtoList;
     }
+
 
     /**
      * Belirli ID'ye sahip odayı getirir.
@@ -42,40 +60,62 @@ public class RoomService {
      * @param id Odanın veritabanı ID'si
      * @return Eğer varsa Room nesnesi, yoksa boş Optional
      */
-    public Room getRoomById(Long id) {
+    public RoomDto getRoomById(Long id) {
+          Room room = roomRepository.findById(id).orElseThrow(()-> new RoomNotFoundException("Oda bulunamadı"));
+          RoomDto dto = new RoomDto();
+        dto.setId(room.getId());
+        dto.setName(room.getName());
+        dto.setDescription(room.getDescription());
+        dto.setCapacity(room.getCapacity());
 
-        return roomRepository.findById(id).orElseThrow(()-> new RoomNotFoundException("Oda bulunamadı!"));
+        return dto;
     }
 
     /**
      * Yeni bir oda kaydeder.
      *
-     * @param room Yeni oluşturulacak Room nesnesi
+     *
      * @return Kaydedilen Room
      */
-    public Room createRoom(Room room) {
-        boolean odaVarmi = roomRepository.existsByName(room.getName());
+    public RoomResponseDto createRoom(RoomCreateRequestDto dto) {
+        boolean odaVarmi = roomRepository.existsByName(dto.getName());
         if(odaVarmi){
-            throw new DuplicateRoomException("Bu isimde bir oda zaten var: " + room.getName());
+            throw new DuplicateRoomException("Bu isimde bir oda zaten var: " + dto.getName());
         }
-        return roomRepository.save(room);
+        Room room = new Room();
+        room.setName(dto.getName());
+        room.setCapacity(dto.getCapacity());
+        room.setDescription(dto.getDescription());
+        Room saved = roomRepository.save(room);
+
+        RoomResponseDto response = new RoomResponseDto();
+        response.setId(saved.getId());
+        response.setName(saved.getName());
+        response.setDescription(saved.getDescription());
+        response.setCapacity(saved.getCapacity());
+
+        return response;
     }
 
     /**
      * Var olan bir odayı günceller.
      *
      * @param id Güncellenecek odanın ID'si
-     * @param updatedRoom Yeni verilerle dolu Room nesnesi
      * @return Güncellenmiş Room nesnesi, bulunamazsa null
      */
-    public Room updateRoom(Long id, Room updatedRoom) {
+    public RoomResponseDto updateRoom(Long id, RoomUpdateRequestDto requestDto) {
     Room room = roomRepository.findById(id).orElseThrow(() -> new RoomNotFoundException("Güncellenecek Oda Bulunamadı"));
-    room.setName(updatedRoom.getName());
-    room.setDescription(updatedRoom.getDescription());
-    room.setCapacity(updatedRoom.getCapacity());
-    room.setCreatedBy(updatedRoom.getCreatedBy());
+    room.setName(requestDto.getName());
+    room.setDescription(requestDto.getDescription());
+    room.setCapacity(requestDto.getCapacity());
+    Room updated = roomRepository.save(room);
+        RoomResponseDto dto = new RoomResponseDto();
+        dto.setId(updated.getId());
+        dto.setName(updated.getName());
+        dto.setCapacity(updated.getCapacity());
+        dto.setDescription(updated.getDescription());
 
-    return roomRepository.save(room);
+        return dto;
     }
 
     /**

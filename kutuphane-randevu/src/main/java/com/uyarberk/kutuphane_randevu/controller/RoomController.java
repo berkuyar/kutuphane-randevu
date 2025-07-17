@@ -1,5 +1,9 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
+import com.uyarberk.kutuphane_randevu.dto.RoomCreateRequestDto;
+import com.uyarberk.kutuphane_randevu.dto.RoomDto;
+import com.uyarberk.kutuphane_randevu.dto.RoomResponseDto;
+import com.uyarberk.kutuphane_randevu.dto.RoomUpdateRequestDto;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.service.RoomService;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
@@ -26,45 +30,44 @@ public class RoomController {
 
     // Tüm odaları getir (GET /api/rooms)
     @GetMapping
-    public ResponseEntity<List<Room>> getAllRooms() {
-        List<Room> rooms = roomService.getAllRooms();
+    public ResponseEntity<List<RoomResponseDto>> getAllRooms() {
+        List<RoomResponseDto> roomList= roomService.getAllRooms();
 
         // Başarılıysa HTTP 200 + oda listesi döner
-        return ResponseEntity.ok(rooms);
+        return ResponseEntity.ok(roomList);
     }
 
     // ID ile tek bir oda getir (GET /api/rooms/{id})
     @GetMapping("/{id}")
-    public ResponseEntity<Room> getRoomById(@PathVariable Long id) {
-        Room room = roomService.getRoomById(id);
-        return ResponseEntity.ok(room);
+    public ResponseEntity<RoomDto> getRoomById(@PathVariable Long id) {
+        RoomDto roomDto = roomService.getRoomById(id);
+        return ResponseEntity.ok(roomDto);
 
     }
 
     // Yeni oda oluştur (POST /api/rooms)
     @PreAuthorize("hasRole ('ADMIN')")
     @PostMapping
-    public ResponseEntity<Room> createRoom(@RequestBody Room room) {
+    public ResponseEntity<RoomResponseDto> createRoom(@RequestBody RoomCreateRequestDto roomCreateRequestDto) {
 
-        Room createdRoom = roomService.createRoom(room);
-
-        // Kaydedilen yeni odayı HTTP 200 ile döner
-        return ResponseEntity.ok(createdRoom);
+        RoomResponseDto responseDto = roomService.createRoom(roomCreateRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     // Odayı güncelle (PUT /api/rooms/{id})
     @PreAuthorize("hasRole ('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Room> updateRoom(@PathVariable Long id, @RequestBody Room updatedRoom) {
+    public ResponseEntity<RoomResponseDto> updateRoom(@PathVariable Long id, @RequestBody RoomUpdateRequestDto requestDto) {
         // Servis üzerinden güncelleme yapılır
-        Room updated = roomService.updateRoom(id, updatedRoom);
-            return ResponseEntity.ok(updated);
+        RoomResponseDto responseDto = roomService.updateRoom(id, requestDto);
+        return ResponseEntity.ok(responseDto);
     }
 
     // Odayı sil (DELETE /api/rooms/{id})
     @PreAuthorize("hasRole ('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRoom(@PathVariable Long id) {
+      roomService.deleteRoom(id);
         return ResponseEntity.ok("Oda silindi");
     }
     }
