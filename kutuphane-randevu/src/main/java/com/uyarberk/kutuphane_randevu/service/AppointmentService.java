@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,10 +33,29 @@ public class AppointmentService {
      * Tüm randevuları getirir
      * @return List<Appointment>
      */
-    public List<Appointment> getAllAppointments() {
-        // Repository'den tüm kayıtları alır
-        return appointmentRepository.findAll();
+    public List<AppointmentResponseDto> getAllAppointments() {
+        List<Appointment> appointments = appointmentRepository.findAll();
+
+        List<AppointmentResponseDto> dtoList = new ArrayList<>();
+        for (Appointment appointment : appointments) {
+            AppointmentResponseDto dto = new AppointmentResponseDto();
+            dto.setId(appointment.getId());
+            dto.setUserId(appointment.getUser().getId());
+            dto.setUserName(appointment.getUser().getName());
+            dto.setUserEmail(appointment.getUser().getEmail());
+            dto.setRoomId(appointment.getRoom().getId());
+            dto.setRoomName(appointment.getRoom().getName());
+            dto.setDate(appointment.getDate());
+            dto.setStartTime(appointment.getStartTime());
+            dto.setEndTime(appointment.getEndTime());
+            dto.setStatus(appointment.getStatus().name());
+
+            dtoList.add(dto);
+        }
+
+        return dtoList;
     }
+
 
     /**
      * Belirli ID'ye göre randevuyu getirir
@@ -43,14 +63,24 @@ public class AppointmentService {
      * @return Optional<Appointment> – olabilir de olmayabilir de
      */
     public AppointmentResponseDto getAppointmentById(Long id) {
-        Appointment a = appointmentRepository.findById(id).orElseThrow(() -> new AppointmentNotFoundException("Randevu yok"));
-        AppointmentResponseDto app = new AppointmentResponseDto();
-        app.setId(a.getId());
-        app.setUserId(a.getUser().getId());
-        app.setUserMail(a.getUser().getEmail());
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppointmentNotFoundException("Randevu bulunamadı: " + id));
 
-        return app;
+        AppointmentResponseDto dto = new AppointmentResponseDto();
+        dto.setId(appointment.getId());
+        dto.setUserId(appointment.getUser().getId());
+        dto.setUserName(appointment.getUser().getName());
+        dto.setUserEmail(appointment.getUser().getEmail());
+        dto.setRoomId(appointment.getRoom().getId());
+        dto.setRoomName(appointment.getRoom().getName());
+        dto.setDate(appointment.getDate());
+        dto.setStartTime(appointment.getStartTime());
+        dto.setEndTime(appointment.getEndTime());
+        dto.setStatus(appointment.getStatus().name());
+
+        return dto;
     }
+
 
     /**
      * Yeni bir randevu oluşturur
@@ -88,28 +118,20 @@ public class AppointmentService {
      * @return Güncellenmiş randevu nesnesi ya da null
      */
     public Appointment updateAppointment(Long id, Appointment updatedAppointment) {
-        // Önce ID ile var olan randevuyu bul
-        Optional<Appointment> existing = appointmentRepository.findById(id);
-
-        // Randevu varsa güncelle
-        if (existing.isPresent()) {
-            Appointment a = existing.get();
+         Appointment existing = appointmentRepository.findById(id)
+                 .orElseThrow(() -> new AppointmentNotFoundException("Randevu bulunamadı" +id));
 
             // Yeni değerleri set et
-            a.setDate(updatedAppointment.getDate());
-            a.setStartTime(updatedAppointment.getStartTime());
-            a.setEndTime(updatedAppointment.getEndTime());
-            a.setRoom(updatedAppointment.getRoom());
-            a.setUser(updatedAppointment.getUser());
-            a.setStatus(updatedAppointment.getStatus());
+            existing.setDate(updatedAppointment.getDate());
+            existing.setStartTime(updatedAppointment.getStartTime());
+            existing.setEndTime(updatedAppointment.getEndTime());
+            existing.setRoom(updatedAppointment.getRoom());
+            existing.setUser(updatedAppointment.getUser());
+            existing.setStatus(updatedAppointment.getStatus());
 
             // Güncellenmiş randevuyu kaydet
-            return appointmentRepository.save(a);
-        } else {
-            // Güncellenecek randevu bulunamadıysa null döner
-            return null;
+            return appointmentRepository.save(existing);
         }
-    }
 
     /**
      * Belirli ID'ye sahip randevuyu siler

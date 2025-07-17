@@ -29,8 +29,8 @@ public class AppointmentController {
     // Tüm randevuları getir (GET /api/appointments)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Appointment>> getAllAppointments() {
-        List<Appointment> appointments = appointmentService.getAllAppointments();
+    public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
+        List<AppointmentResponseDto> appointments = appointmentService.getAllAppointments();
         return ResponseEntity.ok(appointments); // HTTP 200 + liste döner
     }
 
@@ -80,11 +80,7 @@ public class AppointmentController {
     public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @RequestBody Appointment updatedAppointment) {
         Appointment updated = appointmentService.updateAppointment(id, updatedAppointment);
 
-        if (updated != null) {
-            return ResponseEntity.ok(updated); // HTTP 200 + güncellenmiş veri
-        } else {
-            return ResponseEntity.notFound().build(); // HTTP 404
-        }
+         return ResponseEntity.ok(updated);
     }
 
     // Randevuyu sil (DELETE /api/appointments/{id})

@@ -18,7 +18,7 @@ public class GlobalExceptionHandling {
     }
     @ExceptionHandler({AppointmentNotFoundException.class})
     public ResponseEntity<String> handleAppointmenNotFoundException (AppointmentNotFoundException ex){
-        return ResponseEntity.status(404).body(ex.getMessage());
+         return ResponseEntity.status(404).body(ex.getMessage());
     }
     @ExceptionHandler({Exception.class})
     public ResponseEntity<Object> handleAllOtherExceptions(Exception ex){

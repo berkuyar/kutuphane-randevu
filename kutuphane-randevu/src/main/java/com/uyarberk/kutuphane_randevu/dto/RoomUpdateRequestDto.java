@@ -4,9 +4,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
 public class RoomUpdateRequestDto {
-    @NotBlank
+    @NotBlank(message = "İsim boş geçilemez.")
     private String name;
-    @Min(1)
+    @Min(value = 1, message = "Kapasite minimum 1 olmalıdır.")
     private Integer capacity;
     private String description;
 

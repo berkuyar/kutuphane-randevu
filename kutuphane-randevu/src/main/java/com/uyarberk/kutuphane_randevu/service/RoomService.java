@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * RoomService sınıfı, odalarla ilgili iş mantığını içerir.
  * Veritabanı işlemleri doğrudan burada değil, repository aracılığıyla yapılır.
@@ -20,6 +21,7 @@ import java.util.List;
  */
 @Service
 public class RoomService {
+    private static final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
     // Room veritabanı işlemleri için RoomRepository kullanılır.
     private final RoomRepository roomRepository;
@@ -78,8 +80,11 @@ public class RoomService {
      * @return Kaydedilen Room
      */
     public RoomResponseDto createRoom(RoomCreateRequestDto dto) {
+        logger.info("Yeni oda oluşturma isteği alındı: {}" , dto.getName());
+
         boolean odaVarmi = roomRepository.existsByName(dto.getName());
         if(odaVarmi){
+            logger.warn("Aynı isimde bir oda zaten var: {}", dto.getName());
             throw new DuplicateRoomException("Bu isimde bir oda zaten var: " + dto.getName());
         }
         Room room = new Room();
@@ -87,7 +92,7 @@ public class RoomService {
         room.setCapacity(dto.getCapacity());
         room.setDescription(dto.getDescription());
         Room saved = roomRepository.save(room);
-
+        logger.info("Yeni oda başarıyla kaydedildi: {}", saved.getId());
         RoomResponseDto response = new RoomResponseDto();
         response.setId(saved.getId());
         response.setName(saved.getName());
