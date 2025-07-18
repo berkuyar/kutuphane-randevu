@@ -36,6 +36,8 @@ public class Appointment {
     @Enumerated(EnumType.STRING) // Enum değerini string olarak sakla (örnek: "ACTIVE")
     private Status status;
 
+
+
     // Enum sınıfı: randevu durumu için
     public enum Status {
         ACTIVE,
