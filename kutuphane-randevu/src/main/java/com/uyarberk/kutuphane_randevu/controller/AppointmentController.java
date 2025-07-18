@@ -1,5 +1,6 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
+import com.uyarberk.kutuphane_randevu.dto.AppointmentCreateRequestDto;
 import com.uyarberk.kutuphane_randevu.dto.AppointmentResponseDto;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.User;
@@ -64,14 +65,12 @@ public class AppointmentController {
 
     // Yeni randevu oluştur (POST /api/appointments)
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody Appointment appointment) {
-        try {
-            Appointment created = appointmentService.createAppointment(appointment);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
+    public ResponseEntity<AppointmentResponseDto> createAppointment(@RequestBody AppointmentCreateRequestDto dto) {
+        AppointmentResponseDto response = appointmentService.createAppointment(dto);
+        return ResponseEntity.ok(response);
     }
+
 
 
     // Var olan randevuyu güncelle (PUT /api/appointments/{id})

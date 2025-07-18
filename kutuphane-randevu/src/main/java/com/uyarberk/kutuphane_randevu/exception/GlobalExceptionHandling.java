@@ -44,4 +44,15 @@ public class GlobalExceptionHandling {
     public ResponseEntity<Object> handleDuplicateRoomException(DuplicateRoomException ex){
         return ResponseEntity.status(409).body(ex.getMessage());
     }
+
+    //randevu yaratırken bitiş saati başlangıç saatinden önce olamaz
+    @ExceptionHandler(InvalidAppointmentTimeException.class)
+    public ResponseEntity<Object> handleInvalidAppointmentTimeException(InvalidAppointmentTimeException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+//geçmiş tarihe/saate randevu alınamaz
+    @ExceptionHandler(PastDateAppointmentException.class)
+    public ResponseEntity<Object> handlePastDateAppointmentException(PastDateAppointmentException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
 }

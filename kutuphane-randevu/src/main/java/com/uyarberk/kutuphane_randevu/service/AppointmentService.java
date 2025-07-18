@@ -1,13 +1,16 @@
 package com.uyarberk.kutuphane_randevu.service;
 
 // Gerekli model ve repository sınıfı içe aktarılır
+import com.uyarberk.kutuphane_randevu.dto.AppointmentCreateRequestDto;
 import com.uyarberk.kutuphane_randevu.dto.AppointmentResponseDto;
-import com.uyarberk.kutuphane_randevu.exception.AppointmentNotFoundException;
+import com.uyarberk.kutuphane_randevu.exception.*;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.Room;
+import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.repository.AppointmentRepository;
 
 import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
+import com.uyarberk.kutuphane_randevu.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,11 +25,13 @@ public class AppointmentService {
     // Appointment işlemleri için repository'e ihtiyacımız var
     private final AppointmentRepository appointmentRepository;
     private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
 
     // Constructor üzerinden repository enjekte edilir
-    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository) {
+    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository, UserRepository userRepository) {
         this.appointmentRepository = appointmentRepository;
         this.roomRepository = roomRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -84,31 +89,65 @@ public class AppointmentService {
 
     /**
      * Yeni bir randevu oluşturur
-     * @param appointment Oluşturulacak randevu nesnesi
+     *
      * @return Kaydedilen randevu
      */
-    public Appointment createAppointment(Appointment appointment) {
-        // 1. Aynı odada, aynı tarih ve çakışan saatlerde randevu var mı kontrol et
+    public AppointmentResponseDto createAppointment(AppointmentCreateRequestDto dto) {
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("Kullanıcı bulunamadı: " + dto.getUserId()));
+
+        Room room = roomRepository.findById(dto.getRoomId())
+                .orElseThrow(() -> new RoomNotFoundException("Oda bulunamadı: " + dto.getRoomId()));
+
         List<Appointment> existingAppointments = appointmentRepository
                 .findByRoomAndDateAndStartTimeLessThanAndEndTimeGreaterThan(
-                        appointment.getRoom(),
-                        appointment.getDate(),
-                        appointment.getEndTime(),
-                        appointment.getStartTime()
+                        room,
+                        dto.getDate(),
+                        dto.getEndTime(),
+                        dto.getStartTime()
                 )
                 .stream()
                 .filter(a -> a.getStatus() == Appointment.Status.ACTIVE)
                 .toList();
 
-
-        // 2. Eğer çakışma varsa randevu oluşturulmasın
         if (!existingAppointments.isEmpty()) {
             throw new RuntimeException("Bu odada bu saat aralığında zaten bir randevu var.");
         }
+        if(dto.getDate().isBefore(LocalDate.now())) {
+            throw new PastDateAppointmentException("Geçmiş tarihe randevu alınamaz.");
+        }
+        if (dto.getDate().isEqual(LocalDate.now()) && dto.getStartTime().isBefore(LocalTime.now())) {
+            throw new PastDateAppointmentException("Geçmiş saate randevu alınamaz.");
+        }
+        if(!dto.getEndTime().isAfter(dto.getStartTime())) {
+            throw new InvalidAppointmentTimeException("Bitiş saati başlangıç saatinden sonra olmalıdır.");
+        }
 
-        // 3. Çakışma yoksa randevuyu kaydet
-        return appointmentRepository.save(appointment);
+        Appointment appointment = new Appointment();
+        appointment.setUser(user);
+        appointment.setRoom(room);
+        appointment.setDate(dto.getDate());
+        appointment.setStartTime(dto.getStartTime());
+        appointment.setEndTime(dto.getEndTime());
+        appointment.setStatus(Appointment.Status.ACTIVE);
+
+        Appointment saved = appointmentRepository.save(appointment);
+
+        return new AppointmentResponseDto(
+                user.getName(),
+                saved.getId(),
+                user.getId(),
+                user.getEmail(),
+                room.getId(),
+                room.getName(),
+                saved.getDate(),
+                saved.getStartTime(),
+                saved.getEndTime(),
+                saved.getStatus().name()
+        );
     }
+
+
 
 
     /**
