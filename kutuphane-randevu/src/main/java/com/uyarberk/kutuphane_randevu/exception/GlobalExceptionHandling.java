@@ -29,7 +29,7 @@ public class GlobalExceptionHandling {
         return ResponseEntity.status(404).body(ex.getMessage());
 }
 
-// validasyonlar için
+    // validasyonlar için
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
