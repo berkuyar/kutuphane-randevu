@@ -1,7 +1,6 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
-import com.uyarberk.kutuphane_randevu.dto.AppointmentCreateRequestDto;
-import com.uyarberk.kutuphane_randevu.dto.AppointmentResponseDto;
+import com.uyarberk.kutuphane_randevu.dto.*;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.AppointmentService;
@@ -48,7 +47,7 @@ public class AppointmentController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
 // HTTP GET isteği ile /api/appointments/my endpoint'ine istek atıldığında bu metod çalışır
     @GetMapping("/my")
-    public ResponseEntity<List<Appointment>> getMyAppointments(Authentication authentication) {
+    public ResponseEntity<List<AppointmentByUserIdResponseDto>> getMyAppointments(Authentication authentication) {
         // authentication nesnesi Spring Security tarafından otomatik sağlanır.
         // JWT token doğrulandıysa, içindeki kullanıcı bilgileri buradan alınabilir.
         // authentication.getPrincipal() → token'dan gelen kullanıcı nesnesidir.
@@ -56,7 +55,7 @@ public class AppointmentController {
         User user = (User) authentication.getPrincipal();
 
         // Kullanıcının ID'sine göre kendi randevularını getir
-        List<Appointment> appointments = appointmentService.getAppointmentsByUserId(user.getId());
+        List<AppointmentByUserIdResponseDto> appointments = appointmentService.getAppointmentsByUserId(user.getId());
 
 
         // Randevuları 200 OK HTTP cevabıyla birlikte JSON olarak geri döndür
@@ -76,10 +75,9 @@ public class AppointmentController {
     // Var olan randevuyu güncelle (PUT /api/appointments/{id})
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<Appointment> updateAppointment(@PathVariable Long id, @RequestBody Appointment updatedAppointment) {
-        Appointment updated = appointmentService.updateAppointment(id, updatedAppointment);
-
-         return ResponseEntity.ok(updated);
+    public ResponseEntity<AppointmentUpdateRepsonseDto> updateAppointment(@PathVariable Long id, @RequestBody AppointmentUpdateRequestDto updatedAppointment) {
+        AppointmentUpdateRepsonseDto appointmentUpdateRepsonseDto = appointmentService.updateAppointment(id, updatedAppointment);
+         return ResponseEntity.ok(appointmentUpdateRepsonseDto);
     }
 
     // Randevuyu sil (DELETE /api/appointments/{id})
@@ -87,18 +85,13 @@ public class AppointmentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
        boolean deleted = appointmentService.deleteAppointment(id);
-       if(deleted){
-           return ResponseEntity.ok("Randevu Silindi.");
-       }else{
-           return ResponseEntity.status(404).body("Kullanıcı Bulunamadı");
-
-       }
+       return ResponseEntity.ok("Randevu başarıyla silindi.");
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Appointment>> getAppointmentsByUserId(@PathVariable("userId") Long userId){
-    List<Appointment> appointments = appointmentService.getAppointmentsByUserId(userId);
-        return ResponseEntity.ok(appointments);
+    public ResponseEntity<List<AppointmentByUserIdResponseDto>> getAppointmentsByUserId(@PathVariable("userId") Long userId){
+        List<AppointmentByUserIdResponseDto> appointmentByUserIdResponseDtoList = appointmentService.getAppointmentsByUserId(userId);
+        return ResponseEntity.ok(appointmentByUserIdResponseDtoList);
     }
 @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/filter")

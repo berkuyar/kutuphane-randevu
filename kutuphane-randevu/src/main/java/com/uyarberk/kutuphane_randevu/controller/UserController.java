@@ -1,13 +1,17 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
 import com.uyarberk.kutuphane_randevu.dto.ChangePasswordRequest;
+import com.uyarberk.kutuphane_randevu.dto.UserResponseDto;
+import com.uyarberk.kutuphane_randevu.dto.UserUpdateRequestDto;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController // Bu sınıf HTTP isteklerini karşılar
@@ -21,50 +25,42 @@ public class UserController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<?> getAllUsers(){
-
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<List<UserResponseDto>> getAllUsers(){
+        List<UserResponseDto> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id){
-      User user = userService.getUserById(id);
-      return ResponseEntity.ok(user);
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id){
+        UserResponseDto user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+
 
     }
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id){
         boolean deleted = userService.deleteUserById(id);
-        if(deleted){
-            return ResponseEntity.ok("Kullanıcı başarıyla silindi.");
-        }else{
-            return ResponseEntity.status(404).body("Kullanıcı bulunamadı.");
-        }
+         return ResponseEntity.ok("Kullanıcı başarıyla silindi");
     }
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/id")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser){
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id, @RequestBody @Valid UserUpdateRequestDto  userUpdateRequestDto){
 
-        Optional<User> user = userService.updateUser(id, updatedUser);
+        UserResponseDto user = userService.updateUser(id, userUpdateRequestDto);
 
-        if(user.isPresent()){
-            return ResponseEntity.ok(user.get());
-        }else{
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(user);
+
     }
 
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PutMapping("/change-password")
-    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request, Authentication authentication) {
+    public ResponseEntity<String> changePassword(@RequestBody @Valid ChangePasswordRequest request, Authentication authentication) {
         User user = (User) authentication.getPrincipal(); // JWT token'dan gelen kullanıcı
-        try {
             userService.changePassword(user.getId(), request);
             return ResponseEntity.ok("Şifre başarıyla güncellendi.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
+
     }
 
 

@@ -48,4 +48,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     // Belirli bir tarihte kaç randevu olduğunu sayar
     long countByDate(LocalDate date);
+
+    @Query("SELECT a FROM Appointment a WHERE a.room.id = :roomId " +
+            "AND a.date = :date " +
+            "AND a.id <> :appointmentId " +
+            "AND (a.startTime < :endTime AND a.endTime > :startTime)")
+    List<Appointment> findConflictingAppointments(
+            @Param("roomId") Long roomId,
+            @Param("date") LocalDate date,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("appointmentId") Long appointmentId
+    );
+
+
 }
