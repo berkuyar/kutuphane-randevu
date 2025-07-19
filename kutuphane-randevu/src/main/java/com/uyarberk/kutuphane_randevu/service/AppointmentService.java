@@ -221,7 +221,9 @@ public class AppointmentService {
             log.error("Silinecek randevu bulunamadı. appointmentId={}", id);
             return new AppointmentNotFoundException("Randevu bulunamadı.");
         });
-       return true;
+             appointmentRepository.delete(appointment);
+             log.info("Randevu başarıyla silindi. appointmentId={}", id);
+             return true;
     }
     public List<AppointmentByUserIdResponseDto> getAppointmentsByUserId(Long userId) {
           List<Appointment> appointments = appointmentRepository.findByUserId(userId);
