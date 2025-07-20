@@ -70,3 +70,6 @@ src/main/resources/application.properties dosyasında veritabanı bilgilerini g�
 
 # 4. Uygulamayı başlat
 ./mvnw spring-boot:run
+
+``` 
+<p align="center"><b>👨‍💻 Developed by Berk Uyar</b></p> 
