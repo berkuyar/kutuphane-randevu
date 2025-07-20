@@ -61,5 +61,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("appointmentId") Long appointmentId
     );
 
+    List<Appointment> findByDateAndStatus(LocalDate date, Appointment.Status status);
 
 }

@@ -4,71 +4,66 @@ import com.uyarberk.kutuphane_randevu.dto.RoomCreateRequestDto;
 import com.uyarberk.kutuphane_randevu.dto.RoomDto;
 import com.uyarberk.kutuphane_randevu.dto.RoomResponseDto;
 import com.uyarberk.kutuphane_randevu.dto.RoomUpdateRequestDto;
-import com.uyarberk.kutuphane_randevu.model.Room;
 import com.uyarberk.kutuphane_randevu.service.RoomService;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-
 import java.util.List;
-import java.util.Optional;
 
-@RestController // Bu sınıf bir REST API'dir
-@RequestMapping("/api/rooms") // Tüm istekler /api/rooms ile başlar
+@Slf4j
+@RestController
+@RequestMapping("/api/rooms")
 public class RoomController {
 
     private final RoomService roomService;
 
-    // Servisi constructor üzerinden alıyoruz (bağımlılık enjeksiyonu)
     public RoomController(RoomService roomService) {
         this.roomService = roomService;
     }
 
-    // Tüm odaları getir (GET /api/rooms)
     @GetMapping
     public ResponseEntity<List<RoomResponseDto>> getAllRooms() {
-        List<RoomResponseDto> roomList= roomService.getAllRooms();
-
-        // Başarılıysa HTTP 200 + oda listesi döner
+        log.info("Tüm odaları getirme isteği alındı.");
+        List<RoomResponseDto> roomList = roomService.getAllRooms();
+        log.info("Toplam {} oda bulundu.", roomList.size());
         return ResponseEntity.ok(roomList);
     }
 
-    // ID ile tek bir oda getir (GET /api/rooms/{id})
     @GetMapping("/{id}")
     public ResponseEntity<RoomDto> getRoomById(@PathVariable Long id) {
+        log.info("Oda getirme isteği. roomId={}", id);
         RoomDto roomDto = roomService.getRoomById(id);
+        log.info("Oda bulundu. roomId={}, roomName={}", id, roomDto.getName());
         return ResponseEntity.ok(roomDto);
-
     }
 
-    // Yeni oda oluştur (POST /api/rooms)
-    @PreAuthorize("hasRole ('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<RoomResponseDto> createRoom(@RequestBody RoomCreateRequestDto roomCreateRequestDto) {
-
+        log.info("Yeni oda oluşturma isteği alındı. roomName={}", roomCreateRequestDto.getName());
         RoomResponseDto responseDto = roomService.createRoom(roomCreateRequestDto);
+        log.info("Oda başarıyla oluşturuldu. roomId={}, roomName={}", responseDto.getId(), responseDto.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    // Odayı güncelle (PUT /api/rooms/{id})
-    @PreAuthorize("hasRole ('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<RoomResponseDto> updateRoom(@PathVariable Long id, @RequestBody RoomUpdateRequestDto requestDto) {
-        // Servis üzerinden güncelleme yapılır
+        log.info("Oda güncelleme isteği. roomId={}, yeni ad={}", id, requestDto.getName());
         RoomResponseDto responseDto = roomService.updateRoom(id, requestDto);
+        log.info("Oda başarıyla güncellendi. roomId={}", id);
         return ResponseEntity.ok(responseDto);
     }
 
-    // Odayı sil (DELETE /api/rooms/{id})
-    @PreAuthorize("hasRole ('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteRoom(@PathVariable Long id) {
-      roomService.deleteRoom(id);
+        log.info("Oda silme isteği alındı. roomId={}", id);
+        roomService.deleteRoom(id);
+        log.info("Oda başarıyla silindi. roomId={}", id);
         return ResponseEntity.ok("Oda silindi");
     }
-    }
-
+}

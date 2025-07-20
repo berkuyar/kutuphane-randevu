@@ -5,6 +5,7 @@ import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.repository.AppointmentRepository;
 import com.uyarberk.kutuphane_randevu.repository.RoomRepository;
 import com.uyarberk.kutuphane_randevu.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class AdminDashboardService {
 
@@ -25,30 +27,52 @@ public class AdminDashboardService {
         this.appointmentRepository = appointmentRepository;
         this.roomRepository = roomRepository;
     }
-    public AdminDashboardDto getDashboardData(){
+
+    public AdminDashboardDto getDashboardData() {
+        log.info("Admin dashboard verisi hazırlanıyor...");
+
         AdminDashboardDto dto = new AdminDashboardDto();
 
-        dto.setTotalUsers(userRepository.count());
-        dto.setTotalAppointments(appointmentRepository.count());
-        dto.setTodayAppointments(appointmentRepository.countByDate(LocalDate.now()));
-        dto.setAvailableRooms(getAvailableRoomCount());
-        dto.setMostPopularHour(getMostPopularHour());
+        long totalUsers = userRepository.count();
+        long totalAppointments = appointmentRepository.count();
+        long todayAppointments = appointmentRepository.countByDate(LocalDate.now());
+        long availableRooms = getAvailableRoomCount();
+        String mostPopularHour = getMostPopularHour();
+
+        log.info("Toplam kullanıcı sayısı: {}", totalUsers);
+        log.info("Toplam randevu sayısı: {}", totalAppointments);
+        log.info("Bugünkü randevu sayısı: {}", todayAppointments);
+        log.info("Boş oda sayısı (bugün): {}", availableRooms);
+        log.info("En popüler saat: {}", mostPopularHour);
+
+        dto.setTotalUsers(totalUsers);
+        dto.setTotalAppointments(totalAppointments);
+        dto.setTodayAppointments(todayAppointments);
+        dto.setAvailableRooms(availableRooms);
+        dto.setMostPopularHour(mostPopularHour);
+
         return dto;
     }
-    private long getAvailableRoomCount(){
-        var today = LocalDate.now();
+
+    private long getAvailableRoomCount() {
+        LocalDate today = LocalDate.now();
+        log.info("Boş odalar hesaplanıyor. Tarih: {}", today);
 
         Set<Long> busyRoomIds = appointmentRepository.findByDate(today).stream()
                 .map(app -> app.getRoom().getId())
                 .collect(Collectors.toSet());
 
-        // Boş odalar = tüm odalar - dolu odalar
-        return roomRepository.findAll().stream()
+        long availableCount = roomRepository.findAll().stream()
                 .filter(room -> !busyRoomIds.contains(room.getId()))
                 .count();
+
+        log.info("Bugün müsait oda sayısı: {}", availableCount);
+        return availableCount;
     }
 
     private String getMostPopularHour() {
+        log.info("En popüler saat hesaplanıyor...");
+
         List<Appointment> allAppointments = appointmentRepository.findAll();
 
         Map<Integer, Long> hourCountMap = allAppointments.stream()
@@ -59,7 +83,14 @@ public class AdminDashboardService {
 
         return hourCountMap.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
-                .map(entry -> String.format("%02d:00", entry.getKey()))
-                .orElse("Veri yok");
-}
+                .map(entry -> {
+                    String hourStr = String.format("%02d:00", entry.getKey());
+                    log.info("En yoğun saat bulundu: {} ({} randevu)", hourStr, entry.getValue());
+                    return hourStr;
+                })
+                .orElseGet(() -> {
+                    log.warn("En popüler saat bulunamadı. Hiç randevu yok.");
+                    return "Veri yok";
+                });
+    }
 }

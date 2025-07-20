@@ -4,6 +4,7 @@ import com.uyarberk.kutuphane_randevu.dto.*;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.AppointmentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
-
+@Slf4j
 @RestController // Bu sınıf bir REST API denetleyicisidir
 @RequestMapping("/api/appointments") // Tüm endpointler /api/appointments ile başlar
 public class AppointmentController {
@@ -30,6 +31,7 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<AppointmentResponseDto>> getAllAppointments() {
+        log.info("Tüm randevuları getirme isteği alındı.");
         List<AppointmentResponseDto> appointments = appointmentService.getAllAppointments();
         return ResponseEntity.ok(appointments); // HTTP 200 + liste döner
     }
@@ -38,6 +40,7 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<AppointmentResponseDto> getAppointmentById(@PathVariable Long id) {
+        log.info("Randevu getirme isteği alındı. appointmentId={}", id);
         AppointmentResponseDto appointment = appointmentService.getAppointmentById(id);
 
         return ResponseEntity.ok(appointment);
@@ -53,6 +56,7 @@ public class AppointmentController {
         // authentication.getPrincipal() → token'dan gelen kullanıcı nesnesidir.
         // Bu nesne doğrudan bizim User entity'si olarak ayarlanmış durumda.
         User user = (User) authentication.getPrincipal();
+        log.info("Kullanıcıya ait randevular getiriliyor. userID={}", user.getId());
 
         // Kullanıcının ID'sine göre kendi randevularını getir
         List<AppointmentByUserIdResponseDto> appointments = appointmentService.getAppointmentsByUserId(user.getId());
@@ -64,8 +68,8 @@ public class AppointmentController {
 
     // Yeni randevu oluştur (POST /api/appointments)
     @PostMapping
-
     public ResponseEntity<AppointmentResponseDto> createAppointment(@RequestBody AppointmentCreateRequestDto dto) {
+        log.info("Randevu oluşturma isteği alındı.");
         AppointmentResponseDto response = appointmentService.createAppointment(dto);
         return ResponseEntity.ok(response);
     }
@@ -76,6 +80,7 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<AppointmentUpdateRepsonseDto> updateAppointment(@PathVariable Long id, @RequestBody AppointmentUpdateRequestDto updatedAppointment) {
+        log.info("Randevu güncelleme isteği alındı. appointmentId={}", id);
         AppointmentUpdateRepsonseDto appointmentUpdateRepsonseDto = appointmentService.updateAppointment(id, updatedAppointment);
          return ResponseEntity.ok(appointmentUpdateRepsonseDto);
     }
@@ -84,12 +89,15 @@ public class AppointmentController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
-       boolean deleted = appointmentService.deleteAppointment(id);
+        log.info("Randevu silme isteği alındı. appointmentId={}", id);
+         appointmentService.deleteAppointment(id);
+         log.info("Randevu başarıyla silindi. appointmentId={}", id);
        return ResponseEntity.ok("Randevu başarıyla silindi.");
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<AppointmentByUserIdResponseDto>> getAppointmentsByUserId(@PathVariable("userId") Long userId){
+        log.info("Kullanıcının randevularını getirme isteği alındı. userID={}", userId);
         List<AppointmentByUserIdResponseDto> appointmentByUserIdResponseDtoList = appointmentService.getAppointmentsByUserId(userId);
         return ResponseEntity.ok(appointmentByUserIdResponseDtoList);
     }
@@ -101,6 +109,7 @@ public class AppointmentController {
         @RequestParam("endTime") @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime endTime,
         @RequestParam(value = "roomId", required = false) Long roomId
 ){
+
        List<Appointment> result = appointmentService.filterAppointments(date, startTime, endTime, roomId);
        return ResponseEntity.ok(result);
 }

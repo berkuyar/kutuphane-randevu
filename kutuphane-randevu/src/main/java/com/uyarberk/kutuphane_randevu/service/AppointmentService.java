@@ -26,12 +26,14 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     // Constructor üzerinden repository enjekte edilir
-    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository, UserRepository userRepository) {
+    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository, UserRepository userRepository, NotificationService notificationService) {
         this.appointmentRepository = appointmentRepository;
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -149,6 +151,12 @@ public class AppointmentService {
         Appointment saved = appointmentRepository.save(appointment);
         log.info("Randevu başarıyla oluşturuldu: appointmentId={}", saved.getId());
 
+        //kullanıcıya bildirim gönder.
+        notificationService.createNotification(
+                "Yeni randevunuz oluşturuldu: " + saved.getDate()+ " " + saved.getStartTime() + " - " + saved.getEndTime(),
+                user.getId()
+        );
+
         return new AppointmentResponseDto(
                 user.getName(),
                 saved.getId(),
@@ -200,6 +208,15 @@ public class AppointmentService {
         appointment.setRoom(room);
         appointmentRepository.save(appointment);
          log.info("Randevu başarıyla güncellendi.");
+         notificationService.createNotification(
+                 "Randevunuz iptal edildi. " +
+                         appointment.getDate() + " " +
+                         appointment.getStartTime() + " - " +
+                         appointment.getEndTime(),
+                         appointment.getUser().getId()
+
+                 );
+
 
          AppointmentUpdateRepsonseDto appointmentUpdateRepsonseDto = new AppointmentUpdateRepsonseDto();
          appointmentUpdateRepsonseDto.setDate(appointment.getDate());
@@ -221,10 +238,25 @@ public class AppointmentService {
             log.error("Silinecek randevu bulunamadı. appointmentId={}", id);
             return new AppointmentNotFoundException("Randevu bulunamadı.");
         });
-             appointmentRepository.delete(appointment);
-             log.info("Randevu başarıyla silindi. appointmentId={}", id);
-             return true;
+
+        // ✅ Silmeden önce bildirim oluştur
+        String message = "Randevunuz iptal edildi: " +
+                appointment.getDate() + " " +
+                appointment.getStartTime() + " - " +
+                appointment.getEndTime();
+
+        Long userId = appointment.getUser().getId();
+
+        // ✅ Bildirim gönder
+        notificationService.createNotification(message, userId);
+
+        // Randevuyu sil
+        appointmentRepository.delete(appointment);
+        log.info("Randevu başarıyla silindi. appointmentId={}", id);
+
+        return true;
     }
+
     public List<AppointmentByUserIdResponseDto> getAppointmentsByUserId(Long userId) {
           List<Appointment> appointments = appointmentRepository.findByUserId(userId);
 
@@ -255,6 +287,9 @@ public class AppointmentService {
 
         }
         return appointmentRepository.findAppointmentsByDateAndTimeRange(date, startTime, endTime, room);
+    }
+    public List<Appointment> getAllAppointmentsByDate(LocalDate date){
+        return appointmentRepository.findByDateAndStatus(date, Appointment.Status.ACTIVE);
     }
 
 }
