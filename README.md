@@ -16,7 +16,6 @@ JWT ile kimlik doğrulama, rol bazlı yetkilendirme, bildirim sistemi, cron ile 
 - Randevu oluşturma, görüntüleme, güncelleme, silme
 - Çakışma kontrolü: Aynı odada aynı saatte birden fazla randevu alınamaz
 - Geçmiş tarih ve saat kontrolü
-- Aktif / silinmiş randevu ayrımı (opsiyonel soft-delete)
 
 ### 🔎 Filtreleme
 - Randevuları **tarih**, **saat**, **oda ID’si** gibi parametrelere göre filtreleme
@@ -59,7 +58,7 @@ JWT ile kimlik doğrulama, rol bazlı yetkilendirme, bildirim sistemi, cron ile 
 
 ```bash
 # 1. Projeyi klonla
-git clone https://github.com/kullaniciadi/kutuphane-randevu.git
+git clone https://github.com/berkuyar/kutuphane-randevu.git
 cd kutuphane-randevu
 
 # 2. application.properties dosyasını yapılandır
