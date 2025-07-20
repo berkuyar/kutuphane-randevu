@@ -27,6 +27,7 @@ public class NotificationService {
 
         notificationRepository.save(notification);
     }
+
     public List<NotificationDto> getNotificationsForUser(Long userId) {
         List<Notification> notifications = notificationRepository.findByUserId(userId);
         return notifications.stream().map(notification -> {
@@ -38,11 +39,17 @@ public class NotificationService {
             return dto;
         }).toList();
     }
-    public void marAsRead(Long notificationId){
-        Notification notification = notificationRepository.findById(notificationId).
-                orElseThrow(() -> new RuntimeException("Bildirim bulunamadı."));
+
+    public void markAsRead(Long id, Long userId) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bildirim bulunamadı."));
+
+        if (!notification.getUserId().equals(userId)) {
+            throw new RuntimeException("Bu bildirime erişim yetkiniz yok.");
+        }
 
         notification.setRead(true);
         notificationRepository.save(notification);
     }
+
 }

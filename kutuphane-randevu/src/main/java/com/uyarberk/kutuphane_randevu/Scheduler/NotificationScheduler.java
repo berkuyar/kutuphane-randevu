@@ -22,7 +22,7 @@ public class NotificationScheduler {
     // Her gün sabah 8 de çalışır.
     @Scheduled(cron = "0 0 8 * * *")  // saniye dakika saat gün ay haftagünü
     public void notifyUpcomingAppointments() {
-        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        LocalDate tomorrow = LocalDate.now().plusDays(1); // bugünün tarihini alıp 1 gün ekle.
         List<Appointment> appointments = appointmentService.getAllAppointmentsByDate(tomorrow);
 
         for(Appointment appointment : appointments){

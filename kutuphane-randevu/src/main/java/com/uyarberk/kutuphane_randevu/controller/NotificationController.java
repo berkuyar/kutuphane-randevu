@@ -27,10 +27,11 @@ public class NotificationController {
     }
 
 
-    // bildirimi okundu olarak işaretle
     @PutMapping("/read/{id}")
-    public ResponseEntity<String> readNotifications(@PathVariable Long id){
-        notificationService.marAsRead(id);
-        return ResponseEntity.ok("Bildirim okundu olarak işaretlemdi");
+    public ResponseEntity<String> readNotifications(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        notificationService.markAsRead(id, user.getId());
+        return ResponseEntity.ok("Bildirim okundu olarak işaretlendi");
     }
+
 }
+
