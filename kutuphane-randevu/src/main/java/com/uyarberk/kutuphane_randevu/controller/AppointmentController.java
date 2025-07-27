@@ -4,6 +4,7 @@ import com.uyarberk.kutuphane_randevu.dto.*;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.service.AppointmentService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -68,7 +69,7 @@ public class AppointmentController {
 
     // Yeni randevu oluştur (POST /api/appointments)
     @PostMapping
-    public ResponseEntity<AppointmentResponseDto> createAppointment(@RequestBody AppointmentCreateRequestDto dto) {
+    public ResponseEntity<AppointmentResponseDto> createAppointment(@RequestBody @Valid AppointmentCreateRequestDto dto) {
         log.info("Randevu oluşturma isteği alındı.");
         AppointmentResponseDto response = appointmentService.createAppointment(dto);
         return ResponseEntity.ok(response);
@@ -114,5 +115,26 @@ public class AppointmentController {
        return ResponseEntity.ok(result);
 }
 
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/popular-rooms")
+public ResponseEntity<List<RoomPopularityDto>> getMostPopularRooms(
+    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+    @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+) {
+    log.info("En popüler odalar sorgusu: startDate={}, endDate={}", startDate, endDate);
+    List<RoomPopularityDto> popularRooms = appointmentService.getMostPopularRooms(startDate, endDate);
+    return ResponseEntity.ok(popularRooms);
+}
+
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/weekly-occupancy")
+public ResponseEntity<List<WeeklyOccupancyDto>> getWeeklyOccupancyPattern(
+    @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+    @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+) {
+    log.info("Haftalık doluluk analizi sorgusu: startDate={}, endDate={}", startDate, endDate);
+    List<WeeklyOccupancyDto> weeklyPattern = appointmentService.getWeeklyOccupancyPattern(startDate, endDate);
+    return ResponseEntity.ok(weeklyPattern);
+}
 
 }

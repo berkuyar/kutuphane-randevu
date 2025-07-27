@@ -32,7 +32,7 @@ public class UserService {
     public List<UserResponseDto> getAllUsers() {
         List<User> users = userRepository.findAll();
         return users.stream()
-                .map(user -> new UserResponseDto(user.getId(), user.getName(), user.getEmail()))
+                .map(user -> new UserResponseDto(user.getId  (), user.getName(), user.getEmail()))
                 .collect(Collectors.toList());
     }
 

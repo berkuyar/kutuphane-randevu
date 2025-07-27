@@ -1,6 +1,8 @@
 // com.uyarberk.kutuphane_randevu.repository.AppointmentRepository
 package com.uyarberk.kutuphane_randevu.repository;
 
+import com.uyarberk.kutuphane_randevu.dto.RoomPopularityDto;
+import com.uyarberk.kutuphane_randevu.dto.WeeklyOccupancyDto;
 import com.uyarberk.kutuphane_randevu.model.Appointment;
 import com.uyarberk.kutuphane_randevu.model.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -62,5 +64,29 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
 
     List<Appointment> findByDateAndStatus(LocalDate date, Appointment.Status status);
+
+
+    // belirli bir tarih aralığında en popüler odaları gösterir.
+    @Query("SELECT new com.uyarberk.kutuphane_randevu.dto.RoomPopularityDto(r.name, COUNT(a)) " +
+           "FROM Appointment a JOIN a.room r " +
+           "WHERE a.date BETWEEN :startDate AND :endDate " +
+           "AND a.status = 'ACTIVE' " +
+           "GROUP BY r.id, r.name " +
+           "ORDER BY COUNT(a) DESC")
+    List<RoomPopularityDto> findMostPopularRooms(@Param("startDate") LocalDate startDate,
+                                                 @Param("endDate") LocalDate endDate);
+
+    // Haftalık doluluk analizi - hangi günler daha yoğun
+    @Query("SELECT new com.uyarberk.kutuphane_randevu.dto.WeeklyOccupancyDto(" +
+           "FUNCTION('DAYOFWEEK', a.date), " +
+           "COUNT(a), " +
+           "COUNT(DISTINCT a.room.id)) " +
+           "FROM Appointment a " +
+           "WHERE a.date BETWEEN :startDate AND :endDate " +
+           "AND a.status = 'ACTIVE' " +
+           "GROUP BY FUNCTION('DAYOFWEEK', a.date) " +
+           "ORDER BY FUNCTION('DAYOFWEEK', a.date)")
+    List<WeeklyOccupancyDto> findWeeklyOccupancyPattern(@Param("startDate") LocalDate startDate,
+                                                       @Param("endDate") LocalDate endDate);
 
 }

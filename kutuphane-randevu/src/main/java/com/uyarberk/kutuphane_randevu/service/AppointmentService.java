@@ -292,4 +292,14 @@ public class AppointmentService {
         return appointmentRepository.findByDateAndStatus(date, Appointment.Status.ACTIVE);
     }
 
+    public List<RoomPopularityDto> getMostPopularRooms(LocalDate startDate, LocalDate endDate) {
+        log.info("En popüler odalar sorgusu: startDate={}, endDate={}", startDate, endDate);
+        return appointmentRepository.findMostPopularRooms(startDate, endDate);
+    }
+
+    public List<WeeklyOccupancyDto> getWeeklyOccupancyPattern(LocalDate startDate, LocalDate endDate) {
+        log.info("Haftalık doluluk analizi sorgusu: startDate={}, endDate={}", startDate, endDate);
+        return appointmentRepository.findWeeklyOccupancyPattern(startDate, endDate);
+    }
+
 }

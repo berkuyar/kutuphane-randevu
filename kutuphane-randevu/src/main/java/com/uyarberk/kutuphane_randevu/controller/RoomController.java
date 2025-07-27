@@ -12,7 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@CrossOrigin(origins = "http://localhost:3000") // React için CORS izni
 @Slf4j
 @RestController
 @RequestMapping("/api/rooms")
@@ -23,7 +23,7 @@ public class RoomController {
     public RoomController(RoomService roomService) {
         this.roomService = roomService;
     }
-
+    @PreAuthorize("permitAll()")
     @GetMapping
     public ResponseEntity<List<RoomResponseDto>> getAllRooms() {
         log.info("Tüm odaları getirme isteği alındı.");
