@@ -55,4 +55,12 @@ public class GlobalExceptionHandling {
     public ResponseEntity<Object> handlePastDateAppointmentException(PastDateAppointmentException ex){
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public ResponseEntity<Object> handleNotificationNotFoundException(NotificationNotFoundException ex){
+        return ResponseEntity.status(404).body(ex.getMessage());
+    }
+    @ExceptionHandler(UnauthorizeNotFoundException.class)
+     public ResponseEntity<Object> handleUnauthorizeNotFoundException(UnauthorizeNotFoundException ex){
+        return ResponseEntity.status(403).body(ex.getMessage());
+    }
 }

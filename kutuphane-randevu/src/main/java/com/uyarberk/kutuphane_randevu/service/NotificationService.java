@@ -3,6 +3,8 @@ package com.uyarberk.kutuphane_randevu.service;
 import com.uyarberk.kutuphane_randevu.dto.NotificationDto;
 import com.uyarberk.kutuphane_randevu.dto.NotificationTrendDto;
 import com.uyarberk.kutuphane_randevu.dto.UnreadNotificationStatsDto;
+import com.uyarberk.kutuphane_randevu.exception.NotificationNotFoundException;
+import com.uyarberk.kutuphane_randevu.exception.UnauthorizeNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.Notification;
 import com.uyarberk.kutuphane_randevu.repository.NotificationRepository;
 import lombok.Builder;
@@ -20,6 +22,7 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final WebSocketNotificationService webSocketNotificationService;
 
     public void createNotification(String message, Long userId) {
         Notification notification = Notification.builder() //builder ile notification nesnesi oluşturuyoruz
@@ -29,7 +32,20 @@ public class NotificationService {
                 .read(false)
                 .build();
 
-        notificationRepository.save(notification);
+        // Veritabanına kaydet
+        Notification savedNotification = notificationRepository.save(notification);
+        
+        // DTO'ya çevir
+        NotificationDto notificationDto = new NotificationDto();
+        notificationDto.setId(savedNotification.getId());
+        notificationDto.setMessage(savedNotification.getMessage());
+        notificationDto.setCreatedAt(savedNotification.getCreatedAt());
+        notificationDto.setRead(savedNotification.isRead());
+        
+        // 🔥 WebSocket ile gerçek zamanlı gönder!
+        webSocketNotificationService.sendNotificationToUser(userId, notificationDto);
+        
+        log.info("Bildirim oluşturuldu ve WebSocket ile gönderildi: userId={}, message={}", userId, message);
     }
 
     public List<NotificationDto> getNotificationsForUser(Long userId) {
@@ -58,10 +74,10 @@ public class NotificationService {
 
     public void markAsRead(Long id, Long userId) {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bildirim bulunamadı."));
+                .orElseThrow(() -> new NotificationNotFoundException("Bildirim bulunamadı."));
 
         if (!notification.getUserId().equals(userId)) {
-            throw new RuntimeException("Bu bildirime erişim yetkiniz yok.");
+            throw new UnauthorizeNotFoundException("Bu bildirime erişim yetkiniz yok.");
         }
 
         notification.setRead(true);
