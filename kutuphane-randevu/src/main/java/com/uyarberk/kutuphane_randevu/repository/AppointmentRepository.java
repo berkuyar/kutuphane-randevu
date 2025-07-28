@@ -76,6 +76,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<RoomPopularityDto> findMostPopularRooms(@Param("startDate") LocalDate startDate,
                                                  @Param("endDate") LocalDate endDate);
 
+
     // Haftalık doluluk analizi - hangi günler daha yoğun
     @Query("SELECT new com.uyarberk.kutuphane_randevu.dto.WeeklyOccupancyDto(" +
            "FUNCTION('DAYOFWEEK', a.date), " +

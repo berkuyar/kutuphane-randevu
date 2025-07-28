@@ -6,7 +6,9 @@ import com.uyarberk.kutuphane_randevu.dto.UnreadNotificationStatsDto;
 import com.uyarberk.kutuphane_randevu.exception.NotificationNotFoundException;
 import com.uyarberk.kutuphane_randevu.exception.UnauthorizeNotFoundException;
 import com.uyarberk.kutuphane_randevu.model.Notification;
+import com.uyarberk.kutuphane_randevu.model.User;
 import com.uyarberk.kutuphane_randevu.repository.NotificationRepository;
+import com.uyarberk.kutuphane_randevu.repository.UserRepository;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final WebSocketNotificationService webSocketNotificationService;
+    private final UserRepository userRepository;
 
     public void createNotification(String message, Long userId) {
         Notification notification = Notification.builder() //builder ile notification nesnesi oluşturuyoruz
@@ -102,6 +105,27 @@ public class NotificationService {
 
     public Long getTotalUnreadCount() {
         return notificationRepository.countTotalUnread();
+    }
+
+    /**
+     * Admin tarafından tüm kullanıcılara duyuru gönderir
+     * @param message Duyuru mesajı
+     */
+    public void sendAnnouncementToAllUsers(String message) {
+        log.info("Tüm kullanıcılara duyuru gönderiliyor: {}", message);
+        
+        // Tüm kullanıcıları getir
+        List<User> allUsers = userRepository.findAll();
+        
+        // Her kullanıcıya bildirim oluştur ve veritabanına kaydet
+        for (User user : allUsers) {
+            createNotification(message, user.getId());
+        }
+        
+        // WebSocket ile genel duyuru gönder
+        webSocketNotificationService.sendGlobalAnnouncement(message);
+        
+        log.info("Duyuru {} kullanıcıya gönderildi", allUsers.size());
     }
 
 }
