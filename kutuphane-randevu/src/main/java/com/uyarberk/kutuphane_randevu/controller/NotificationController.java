@@ -1,5 +1,6 @@
 package com.uyarberk.kutuphane_randevu.controller;
 
+import com.uyarberk.kutuphane_randevu.dto.AnnouncementRequestDto;
 import com.uyarberk.kutuphane_randevu.dto.NotificationDto;
 import com.uyarberk.kutuphane_randevu.dto.NotificationTrendDto;
 import com.uyarberk.kutuphane_randevu.dto.UnreadNotificationStatsDto;
@@ -75,6 +76,18 @@ public class NotificationController {
     public ResponseEntity<Long> getMyUnreadCount(@AuthenticationPrincipal User user) {
         Long count = notificationService.getUnreadCountForUser(user.getId());
         return ResponseEntity.ok(count);
+    }
+
+    // Admin tüm kullanıcılara duyuru gönderebilir
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/announcements")
+    public ResponseEntity<String> sendAnnouncement(@RequestBody AnnouncementRequestDto request) {
+        String message = request.getTitle() != null ? 
+            request.getTitle() + ": " + request.getMessage() : 
+            request.getMessage();
+        
+        notificationService.sendAnnouncementToAllUsers(message);
+        return ResponseEntity.ok("Duyuru tüm kullanıcılara gönderildi");
     }
 
 }

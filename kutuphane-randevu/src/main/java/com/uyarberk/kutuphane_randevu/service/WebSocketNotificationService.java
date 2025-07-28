@@ -51,17 +51,4 @@ public class WebSocketNotificationService {
         }
     }
 
-    /**
-     * Test amaçlı bildirim gönderir
-     * @param userId Test edilecek kullanıcı ID'si
-     */
-    public void sendTestNotification(Long userId) {
-        NotificationDto testNotification = new NotificationDto();
-        testNotification.setId(999L);
-        testNotification.setMessage("Bu bir test bildirimidir - WebSocket çalışıyor! 🚀");
-        testNotification.setRead(false);
-        testNotification.setCreatedAt(java.time.LocalDateTime.now());
-        
-        sendNotificationToUser(userId, testNotification);
-    }
 }
