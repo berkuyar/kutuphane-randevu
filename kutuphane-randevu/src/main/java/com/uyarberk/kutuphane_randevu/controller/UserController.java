@@ -13,6 +13,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Slf4j
 @RestController
@@ -27,10 +31,21 @@ public class UserController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-        log.info("Tüm kullanıcıları getirme isteği alındı.");
-        List<UserResponseDto> users = userService.getAllUsers();
-        log.info("Toplam {} kullanıcı bulundu.", users.size());
+    public ResponseEntity<Page<UserResponseDto>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
+        log.info("Tüm kullanıcıları getirme isteği alındı. page={}, size={}", page, size);
+        
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<UserResponseDto> users = userService.getAllUsers(pageable);
+        
+        log.info("Toplam {} kullanıcı bulundu, {} sayfadan {} gösteriliyor.", 
+            users.getTotalElements(), users.getTotalPages(), users.getNumberOfElements());
         return ResponseEntity.ok(users);
     }
 

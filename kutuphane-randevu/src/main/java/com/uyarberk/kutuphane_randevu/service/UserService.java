@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @Service // Bu sınıf bir "servis katmanı" olduğunu belirtir (iş mantığı burada yazılır)
@@ -29,11 +31,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public List<UserResponseDto> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(user -> new UserResponseDto(user.getId  (), user.getName(), user.getEmail()))
-                .collect(Collectors.toList());
+    public Page<UserResponseDto> getAllUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        return users.map(user -> new UserResponseDto(user.getId(), user.getName(), user.getEmail()));
     }
 
     public UserResponseDto getUserById(Long id) {
