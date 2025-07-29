@@ -15,7 +15,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByUserId(Long userId);
     
     // Kullanıcının sadece okunmamış bildirimlerini getir
-    List<Notification> findByUserIdAndReadFalse(Long userId);
+    List<Notification> findByUserIdAndIsReadFalse(Long userId);
 
     // Kullanıcıların okunmamış bildirim istatistikleri
     @Query("SELECT new com.uyarberk.kutuphane_randevu.dto.UnreadNotificationStatsDto(" +
@@ -23,7 +23,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
            "(SELECT u.name FROM User u WHERE u.id = n.userId), " +
            "COUNT(n)) " +
            "FROM Notification n " +
-           "WHERE n.read = false " +
+           "WHERE n.isRead = false " +
            "GROUP BY n.userId " +
            "ORDER BY COUNT(n) DESC")
     List<UnreadNotificationStatsDto> findUnreadNotificationStats();
@@ -39,10 +39,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<NotificationTrendDto> findDailyNotificationTrend(@Param("startDate") LocalDateTime startDate);
 
     // Kullanıcının okunmamış bildirim sayısı
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.read = false")
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false")
     Long countUnreadByUserId(@Param("userId") Long userId);
 
     // Tüm kullanıcıların toplam okunmamış bildirimi
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.read = false")
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.isRead = false")
     Long countTotalUnread();
 }

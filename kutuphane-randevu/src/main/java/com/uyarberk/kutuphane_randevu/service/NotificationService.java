@@ -20,7 +20,6 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor //final alan için otomatik constructor oluşturur
-@Builder
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -32,7 +31,7 @@ public class NotificationService {
                 .message(message)
                 .userId(userId)
                 .createdAt(LocalDateTime.now())
-                .read(false)
+                .isRead(false)
                 .build();
 
         // Veritabanına kaydet
@@ -64,7 +63,7 @@ public class NotificationService {
     }
 
     public List<NotificationDto> getUnreadNotificationsForUser(Long userId) {
-        List<Notification> notifications = notificationRepository.findByUserIdAndReadFalse(userId);
+        List<Notification> notifications = notificationRepository.findByUserIdAndIsReadFalse(userId);
         return notifications.stream().map(notification -> {
             NotificationDto dto = new NotificationDto();
             dto.setId(notification.getId());

@@ -22,7 +22,9 @@ public class JwtService {
     // 🛠 1. Token üretme (giriş başarılıysa)
     public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", user.getRole().name()); // İstersen role, id gibi şeyler de ekleyebilirsin
+        claims.put("role", user.getRole().name());
+        claims.put("userId", user.getId()); // User ID'yi ekle
+        claims.put("name", user.getName()); // User name'i ekle
         return Jwts.builder()
                 .setClaims(claims) // Payload'a ek veri
                 .setSubject(user.getEmail()) // Kimlik bilgisi (email gibi)

@@ -13,7 +13,8 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class AppointmentCreateRequestDto {
 
-    private Long userId;
+    private Long userId;  // JWT'den backend tarafından set edilir
+    @NotNull(message = "Oda ID'si boş geçilemez")
     private Long roomId;
     @NotNull(message = "Tarih boş geçilemez")
     private LocalDate date;

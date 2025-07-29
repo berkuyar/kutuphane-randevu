@@ -27,13 +27,17 @@ public class AppointmentService {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final AppointmentPeriodService appointmentPeriodService;
+    private final TimeSlotService timeSlotService;
 
     // Constructor üzerinden repository enjekte edilir
-    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository, UserRepository userRepository, NotificationService notificationService) {
+    public AppointmentService(AppointmentRepository appointmentRepository, RoomRepository roomRepository, UserRepository userRepository, NotificationService notificationService, AppointmentPeriodService appointmentPeriodService, TimeSlotService timeSlotService) {
         this.appointmentRepository = appointmentRepository;
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.appointmentPeriodService = appointmentPeriodService;
+        this.timeSlotService = timeSlotService;
     }
 
     /**
@@ -140,6 +144,17 @@ public class AppointmentService {
             throw new InvalidAppointmentTimeException("Bitiş saati başlangıç saatinden sonra olmalıdır.");
         }
 
+        if (!appointmentPeriodService.isAppointmentAllowedForDate(dto.getDate(), dto.getStartTime(), dto.getEndTime())) {
+            log.warn("Randevu için uygun dönem bulunamadı: date={}, startTime={}, endTime={}", 
+                    dto.getDate(), dto.getStartTime(), dto.getEndTime());
+            throw new RuntimeException("Bu tarih ve saat aralığı için randevu alınamaz. Lütfen admin tarafından belirlenen randevu dönemlerini kontrol edin.");
+        }
+
+        if (!timeSlotService.isValidSlot(dto.getStartTime(), dto.getEndTime())) {
+            log.warn("Geçersiz zaman slotu: startTime={}, endTime={}", dto.getStartTime(), dto.getEndTime());
+            throw new RuntimeException("Bu saat aralığı için tanımlı bir slot bulunmamaktadır. Lütfen mevcut slotlardan birini seçin.");
+        }
+
         Appointment appointment = new Appointment();
         appointment.setUser(user);
         appointment.setRoom(room);
@@ -179,12 +194,18 @@ public class AppointmentService {
      * @param updatedAppointment Yeni verilerle dolu randevu nesnesi
      * @return Güncellenmiş randevu nesnesi ya da null
      */
-    public AppointmentUpdateRepsonseDto updateAppointment(Long id, AppointmentUpdateRequestDto updatedAppointment) {
+    public AppointmentUpdateRepsonseDto updateAppointment(Long id, AppointmentUpdateRequestDto updatedAppointment, Long userId) {
 
-        Appointment  appointment = appointmentRepository.findById(id).orElseThrow(()->{
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow(()->{
             log.error("Güncellemek istediğiniz randevu bulunamadı. appointmentId={}", id);
             return new AppointmentNotFoundException("Randevu bulunamadı.");
         });
+        
+        // Kullanıcının sadece kendi randevusunu güncelleyebilmesini kontrol et
+        if (!appointment.getUser().getId().equals(userId)) {
+            log.error("Kullanıcı başkasının randevusunu güncellemeye çalışıyor. userId={}, appointmentUserId={}", userId, appointment.getUser().getId());
+            throw new UnauthorizeNotFoundException("Bu randevuyu güncelleme yetkiniz yok.");
+        }
          List<Appointment> existingAppointments = appointmentRepository.findConflictingAppointments(
                  updatedAppointment.getRoomId(),
                  updatedAppointment.getDate(),
@@ -230,14 +251,22 @@ public class AppointmentService {
     /**
      * Belirli ID'ye sahip randevuyu siler
      * @param id Silinecek randevunun ID'si
+     * @param userId Silme işlemini yapan kullanıcının ID'si
+     * @param userRole Kullanıcının rolü (USER/ADMIN)
      * @return true = silindi, false = bulunamadı
      */
-    public boolean deleteAppointment(Long id) {
+    public boolean deleteAppointment(Long id, Long userId, String userRole) {
         // Önce var mı diye kontrol et
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(() -> {
             log.error("Silinecek randevu bulunamadı. appointmentId={}", id);
             return new AppointmentNotFoundException("Randevu bulunamadı.");
         });
+
+        // Kullanıcının sadece kendi randevusunu silebilmesini kontrol et (Admin hariç)
+        if (!userRole.equals("ADMIN") && !appointment.getUser().getId().equals(userId)) {
+            log.error("Kullanıcı başkasının randevusunu silmeye çalışıyor. userId={}, appointmentUserId={}", userId, appointment.getUser().getId());
+            throw new UnauthorizeNotFoundException("Bu randevuyu silme yetkiniz yok.");
+        }
 
         // ✅ Silmeden önce bildirim oluştur
         String message = "Randevunuz iptal edildi: " +
@@ -245,14 +274,14 @@ public class AppointmentService {
                 appointment.getStartTime() + " - " +
                 appointment.getEndTime();
 
-        Long userId = appointment.getUser().getId();
+        Long appointmentOwnerId = appointment.getUser().getId();
 
         // ✅ Bildirim gönder
-        notificationService.createNotification(message, userId);
+        notificationService.createNotification(message, appointmentOwnerId);
 
         // Randevuyu sil
         appointmentRepository.delete(appointment);
-        log.info("Randevu başarıyla silindi. appointmentId={}", id);
+        log.info("Randevu başarıyla silindi. appointmentId={}, deletedBy={}", id, userId);
 
         return true;
     }
@@ -261,17 +290,18 @@ public class AppointmentService {
           List<Appointment> appointments = appointmentRepository.findByUserId(userId);
 
           if(appointments.isEmpty()) {
-              log.warn("Bu kullanıcıya ait hiç randevu yok. userId={}", userId);
-              throw new AppointmentNotFoundException("Bu kullanıcıya ait hiç randevu yok.");
+              log.info("Bu kullanıcıya ait hiç randevu yok. userId={}", userId);
+              return new ArrayList<>(); // Boş liste döndür, exception fırlatma
           }
           List<AppointmentByUserIdResponseDto> appointmentByUserIdResponseDtoList = new ArrayList<>();
           for(Appointment appointment : appointments) {
               AppointmentByUserIdResponseDto appointmentByUserIdResponseDto = new AppointmentByUserIdResponseDto();
+              appointmentByUserIdResponseDto.setId(appointment.getId()); // ID set ediliyor
               appointmentByUserIdResponseDto.setDate(appointment.getDate());
               appointmentByUserIdResponseDto.setStartTime(appointment.getStartTime());
               appointmentByUserIdResponseDto.setEndTime(appointment.getEndTime());
-              appointmentByUserIdResponseDto.setUserName(appointment.getUser().getName());
               appointmentByUserIdResponseDto.setRoomName(appointment.getRoom().getName());
+              appointmentByUserIdResponseDto.setUserName(appointment.getUser().getName());
               appointmentByUserIdResponseDtoList.add(appointmentByUserIdResponseDto);
           }
            return  appointmentByUserIdResponseDtoList;

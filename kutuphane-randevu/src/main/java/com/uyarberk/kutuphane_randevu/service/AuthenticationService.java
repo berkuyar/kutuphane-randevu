@@ -56,14 +56,20 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse register(RegisterRequest request) {
+        // Email adresi zaten kayıtlı mı kontrol et
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Bu email adresi zaten kayıtlı.");
+        }
+        
         User user = new User();
+        user.setName(request.getName()); // İsim eklendi
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(User.Role.USER);
         userRepository.save(user);
 
         String jwt = jwtService.generateToken(user);
-         return new AuthenticationResponse(jwt);
+        return new AuthenticationResponse(jwt);
     }
 
 }

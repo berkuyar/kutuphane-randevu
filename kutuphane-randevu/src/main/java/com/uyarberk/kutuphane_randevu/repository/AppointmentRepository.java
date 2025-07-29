@@ -23,6 +23,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
     List<Appointment> findByUserId(Long userId);
 
+    boolean existsByRoomIdAndDateAndStartTimeAndEndTimeAndStatus(
+            Long roomId, LocalDate date, LocalTime startTime, LocalTime endTime, Appointment.Status status
+    );
+
 
     /**
      * Belirli bir tarihte, belirli saat aralığında ve isteğe bağlı olarak belirli bir odadaki randevuları getirir.

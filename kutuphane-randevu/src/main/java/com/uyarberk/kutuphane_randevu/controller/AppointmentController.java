@@ -69,8 +69,13 @@ public class AppointmentController {
 
     // Yeni randevu oluştur (POST /api/appointments)
     @PostMapping
-    public ResponseEntity<AppointmentResponseDto> createAppointment(@RequestBody @Valid AppointmentCreateRequestDto dto) {
-        log.info("Randevu oluşturma isteği alındı.");
+    public ResponseEntity<AppointmentResponseDto> createAppointment(@RequestBody @Valid AppointmentCreateRequestDto dto, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        log.info("Randevu oluşturma isteği alındı. userID={}", user.getId());
+        
+        // JWT'den aldığımız userId'yi DTO'ya set ediyoruz
+        dto.setUserId(user.getId());
+        
         AppointmentResponseDto response = appointmentService.createAppointment(dto);
         return ResponseEntity.ok(response);
     }
@@ -78,22 +83,27 @@ public class AppointmentController {
 
 
     // Var olan randevuyu güncelle (PUT /api/appointments/{id})
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<AppointmentUpdateRepsonseDto> updateAppointment(@PathVariable Long id, @RequestBody AppointmentUpdateRequestDto updatedAppointment) {
+    public ResponseEntity<AppointmentUpdateRepsonseDto> updateAppointment(@PathVariable Long id, @RequestBody AppointmentUpdateRequestDto updatedAppointment, Authentication authentication) {
         log.info("Randevu güncelleme isteği alındı. appointmentId={}", id);
-        AppointmentUpdateRepsonseDto appointmentUpdateRepsonseDto = appointmentService.updateAppointment(id, updatedAppointment);
+        
+        // Kullanıcının sadece kendi randevusunu güncelleyebilmesini sağla
+        User user = (User) authentication.getPrincipal();
+        AppointmentUpdateRepsonseDto appointmentUpdateRepsonseDto = appointmentService.updateAppointment(id, updatedAppointment, user.getId());
          return ResponseEntity.ok(appointmentUpdateRepsonseDto);
     }
 
     // Randevuyu sil (DELETE /api/appointments/{id})
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteAppointment(@PathVariable Long id) {
-        log.info("Randevu silme isteği alındı. appointmentId={}", id);
-         appointmentService.deleteAppointment(id);
-         log.info("Randevu başarıyla silindi. appointmentId={}", id);
-       return ResponseEntity.ok("Randevu başarıyla silindi.");
+    public ResponseEntity<String> deleteAppointment(@PathVariable Long id, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        log.info("Randevu silme isteği alındı. appointmentId={}, userId={}", id, user.getId());
+        
+        appointmentService.deleteAppointment(id, user.getId(), user.getRole().name());
+        log.info("Randevu başarıyla silindi. appointmentId={}", id);
+        return ResponseEntity.ok("Randevu başarıyla silindi.");
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/user/{userId}")

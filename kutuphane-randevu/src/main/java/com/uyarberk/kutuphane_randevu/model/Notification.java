@@ -1,9 +1,6 @@
 package com.uyarberk.kutuphane_randevu.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +20,9 @@ public class Notification {
     private Long id;
     private String message;
     private LocalDateTime createdAt;
-    private boolean read;
+    
+    @Column(name = "is_read")
+    private boolean isRead;
+    
     private Long userId;
 }
